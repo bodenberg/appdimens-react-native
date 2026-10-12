@@ -458,7 +458,10 @@ export function plainScreen(
     : value;
 }
 
-/** Px aliases of the logic-only branches (Android `plainRotatePx`, …). */
+/**
+ * Px names of the logic-only branches (Android `code.plain.plainRotatePx`, …). As on Android,
+ * both arguments are expected **already in px**: nothing is converted, only the branch is chosen.
+ */
 export const plainRotatePx = plainRotate;
 export const plainModePx = plainMode;
 export const plainQualifierPx = plainQualifier;

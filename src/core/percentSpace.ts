@@ -8,7 +8,8 @@
  *   space(25, 200)    // 25% of 200 dp → 50 dp
  *
  * Variants ending in `i` honour `ignoreMultiWindows` (they return the raw percentage when the
- * window is constrained by multi-window, like Android `literalPercentOfScreenDp`).
+ * window is constrained by multi-window — the exact behaviour of Android
+ * `literalPercentOfScreenDp`). Prefer the variants without `i` for layout lengths.
  */
 import {store} from './DimenCache';
 import {DimenMetrics, Q_H, Q_SW, Q_W} from './DimenMetrics';
