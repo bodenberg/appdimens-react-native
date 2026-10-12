@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/density",
+  "private": true,
+  "main": "../lib/commonjs/strategies/density/index.js",
+  "module": "../lib/module/strategies/density/index.js",
+  "types": "../lib/typescript/strategies/density/index.d.ts",
+  "react-native": "../src/strategies/density/index.ts",
+  "sideEffects": false
+}

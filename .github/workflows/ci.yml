@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Generated files are up to date
+        run: npm run generate:check
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Format
+        run: npm run format:check
+      - name: Unit + parity tests (coverage)
+        run: npm run test:coverage -- --ci
+      - name: Build
+        run: npm run build
+      - name: Smoke test of the compiled package (CJS + ESM)
+        if: matrix.node != 18
+        run: npm run smoke
+      - name: Benchmark
+        if: matrix.node == 22
+        run: npm run bench
+      - name: Pack dry-run
+        if: matrix.node == 22
+        run: npm pack --dry-run

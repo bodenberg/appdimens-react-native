@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/fit",
+  "private": true,
+  "main": "../lib/commonjs/strategies/fit/index.js",
+  "module": "../lib/module/strategies/fit/index.js",
+  "types": "../lib/typescript/strategies/fit/index.d.ts",
+  "react-native": "../src/strategies/fit/index.ts",
+  "sideEffects": false
+}

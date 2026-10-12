@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/units",
+  "private": true,
+  "main": "../lib/commonjs/units/index.js",
+  "module": "../lib/module/units/index.js",
+  "types": "../lib/typescript/units/index.d.ts",
+  "react-native": "../src/units/index.ts",
+  "sideEffects": false
+}

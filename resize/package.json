@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/resize",
+  "private": true,
+  "main": "../lib/commonjs/resize/index.js",
+  "module": "../lib/module/resize/index.js",
+  "types": "../lib/typescript/resize/index.d.ts",
+  "react-native": "../src/resize/index.ts",
+  "sideEffects": false
+}

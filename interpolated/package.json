@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/interpolated",
+  "private": true,
+  "main": "../lib/commonjs/strategies/interpolated/index.js",
+  "module": "../lib/module/strategies/interpolated/index.js",
+  "types": "../lib/typescript/strategies/interpolated/index.d.ts",
+  "react-native": "../src/strategies/interpolated/index.ts",
+  "sideEffects": false
+}

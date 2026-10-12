@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/fluid/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/fluid/number.js",
+  "module": "../../lib/module/strategies/fluid/number.js",
+  "types": "../../lib/typescript/strategies/fluid/number.d.ts",
+  "react-native": "../../src/strategies/fluid/number.ts",
+  "sideEffects": true
+}

@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/diagonal",
+  "private": true,
+  "main": "../lib/commonjs/strategies/diagonal/index.js",
+  "module": "../lib/module/strategies/diagonal/index.js",
+  "types": "../lib/typescript/strategies/diagonal/index.d.ts",
+  "react-native": "../src/strategies/diagonal/index.ts",
+  "sideEffects": false
+}

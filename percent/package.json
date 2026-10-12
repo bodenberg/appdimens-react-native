@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/percent",
+  "private": true,
+  "main": "../lib/commonjs/strategies/percent/index.js",
+  "module": "../lib/module/strategies/percent/index.js",
+  "types": "../lib/typescript/strategies/percent/index.d.ts",
+  "react-native": "../src/strategies/percent/index.ts",
+  "sideEffects": false
+}

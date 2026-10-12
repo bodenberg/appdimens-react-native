@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/power/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/power/number.js",
+  "module": "../../lib/module/strategies/power/number.js",
+  "types": "../../lib/typescript/strategies/power/number.d.ts",
+  "react-native": "../../src/strategies/power/number.ts",
+  "sideEffects": true
+}

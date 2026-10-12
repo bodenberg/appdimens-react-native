@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/perimeter",
+  "private": true,
+  "main": "../lib/commonjs/strategies/perimeter/index.js",
+  "module": "../lib/module/strategies/perimeter/index.js",
+  "types": "../lib/typescript/strategies/perimeter/index.d.ts",
+  "react-native": "../src/strategies/perimeter/index.ts",
+  "sideEffects": false
+}

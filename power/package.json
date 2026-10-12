@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/power",
+  "private": true,
+  "main": "../lib/commonjs/strategies/power/index.js",
+  "module": "../lib/module/strategies/power/index.js",
+  "types": "../lib/typescript/strategies/power/index.d.ts",
+  "react-native": "../src/strategies/power/index.ts",
+  "sideEffects": false
+}

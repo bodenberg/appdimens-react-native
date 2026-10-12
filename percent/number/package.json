@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/percent/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/percent/number.js",
+  "module": "../../lib/module/strategies/percent/number.js",
+  "types": "../../lib/typescript/strategies/percent/number.d.ts",
+  "react-native": "../../src/strategies/percent/number.ts",
+  "sideEffects": true
+}

@@ -1,28 +1,15 @@
+/** @type {import('jest').Config} */
 module.exports = {
-  preset: 'react-native',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: {
-        jsx: 'react-jsx',
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-      },
-    }],
-  },
-  testMatch: ['**/__tests__/**/*.(ts|tsx|js)', '**/*.(test|spec).(ts|tsx|js)'],
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/index.ts',
-  ],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@react-navigation|@react-native/js-polyfills)/)',
-  ],
   testEnvironment: 'node',
+  roots: ['<rootDir>/__tests__'],
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', {tsconfig: {jsx: 'react', esModuleInterop: true, isolatedModules: true}, diagnostics: false}],
+  },
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    '^react-native$': '<rootDir>/__mocks__/react-native.ts',
+  },
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/strategies/*/number.ts'],
+  coverageThreshold: {
+    global: {branches: 80, functions: 80, lines: 90, statements: 90},
   },
 };
