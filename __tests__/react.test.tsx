@@ -225,6 +225,7 @@ test('useAutoResizeTextSp and AutoResizeText', () => {
   expect(text.props.allowFontScaling).toBe(true);
   expect(text.props.style[1].fontSize).toBe(30);
   expect(text.props.style[2]).toEqual({letterSpacing: 1});
+  expect(text.props.style[3]).toBeNull();
 });
 
 test('box resize hooks', () => {

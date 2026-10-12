@@ -299,7 +299,17 @@ export function AutoResizeText({
         numberOfLines={maxLines}
         allowFontScaling={fontScale !== false}
         {...textProps}
-        style={[style, {fontSize}, letterSpacing != null ? {letterSpacing} : null]}>
+        style={[
+          style,
+          {fontSize},
+          letterSpacing != null ? {letterSpacing} : null,
+          // Render with the same line height used for measurement.
+          lineHeight != null
+            ? {lineHeight}
+            : lineHeightMultiplier != null
+              ? {lineHeight: fontSize * lineHeightMultiplier}
+              : null,
+        ]}>
         {children}
       </Text>
     </View>

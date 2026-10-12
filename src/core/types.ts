@@ -113,7 +113,11 @@ export interface DimenOptions {
   applyAspectRatio?: boolean;
   /** Return the unscaled base when the window is constrained by multi-window (the `i` suffix). */
   ignoreMultiWindows?: boolean;
-  /** Custom aspect-ratio sensitivity `k` (only used when `applyAspectRatio` is true). */
+  /**
+   * Custom aspect-ratio sensitivity `k` (only used when `applyAspectRatio` is true). It is the raw
+   * coefficient of `ln(aspectRatio / 1.78)`; the default is `0.08 / 30 ≈ 0.00267`, so useful
+   * values are small (roughly 0–0.01).
+   */
   customSensitivityK?: number | null;
 }
 

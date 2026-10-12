@@ -1,5 +1,7 @@
 /**
  * Responsive styles with one computation per window snapshot (shared by every component).
+ * Scaled tokens ('16sdp') work out of the box; other strategies need
+ * `DimenStyleSheet.register(powerKernels)` first (unknown tokens are left as strings).
  *
  *   const useStyles = createDimenStyles(() => ({
  *     card: {padding: sdp(16), borderRadius: sdp(12)},
