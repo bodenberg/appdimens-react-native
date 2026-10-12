@@ -1,0 +1,31 @@
+# AppDimens Dynamic for React Native
+
+> React Native port of AppDimens Dynamic (Android): responsive dp/sp scaling with the same API names (`sdp`, `hdp`, `wdp`, `ssp`, `sem`, suffixes `a`, `Ph`/`Lh`/`Pw`/`Lw`, `Px`), 12 scaling strategies, conditional facilitators, `scaledDp().screen()` builders, constraint-based resize and physical units. Pure JS/TS, no native module.
+
+Important notes:
+- npm package `appdimens-react-native`, version **3.2.0** (aligned with the Android library).
+- Main entry = core + **scaled** strategy + React integration. Other strategies are sub-paths: `/percent` (p), `/power` (pw), `/fluid` (f), `/auto` (a), `/diagonal` (dg), `/fill` (fl), `/fit` (ft), `/interpolated` (i), `/logarithmic` (log), `/perimeter` (pr), `/density` (d), plus `/resize` and `/units`.
+- Functions take the design value: `sdp(16)`; results are dp (React Native layout units); `Px` variants return physical pixels; `ssp` is a `fontSize` (RN applies font scale), `sem` ignores the font scale.
+- Components must subscribe to window changes: `useDimenMetrics()`, or styles via `createDimenStyles(() => …)` / `DimenStyleSheet.create({padding: '16sdp'})`.
+- Optional Kotlin-style syntax: `import 'appdimens-react-native/number'` then `(16).sdp`.
+- Default strategy is Scaled; `i` / `ia` (ignore multi-window) suffixes exist but should not be surfaced to users.
+- Fold/flip/car/watch modes must be supplied by the app (`AppDimensProvider uiModeType` or `DimenCache.setUiModeType`); TV and visionOS are detected.
+
+## Documentation
+
+- [README.md](README.md): install, Android → RN mapping, every API family
+- [docs/README.md](docs/README.md): strategy index and decision flow
+- [docs/API-CONVENTIONS.md](docs/API-CONVENTIONS.md): naming rules, facilitators, builders, escape hatches
+- [docs/MIGRATION-FROM-ANDROID.md](docs/MIGRATION-FROM-ANDROID.md): Compose/Views → React Native
+- [docs/PERFORMANCE.md](docs/PERFORMANCE.md): snapshot + factor table architecture, benchmark
+- [skills/SKILL.md](skills/SKILL.md): agent workflow skill for this library
+- [CHANGELOG.md](CHANGELOG.md)
+
+## Strategy guides
+
+- [Scaled](docs/scaled.md) · [Percent](docs/percent.md) · [Power](docs/power.md) · [Fluid](docs/fluid.md) · [Auto](docs/auto.md) · [Diagonal](docs/diagonal.md) · [Fill](docs/fill.md) · [Fit](docs/fit.md) · [Interpolated](docs/interpolated.md) · [Logarithmic](docs/logarithmic.md) · [Perimeter](docs/perimeter.md) · [Density](docs/density.md) · [Resize](docs/resize.md) · [Physical units](docs/physical-units.md)
+
+## Optional
+
+- [example/App.tsx](example/App.tsx): usage tour
+- [Android library](https://github.com/bodenberg/appdimens-dynamic): original Kotlin implementation and math reference
