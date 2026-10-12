@@ -19,4 +19,4 @@ Node 18+ (the compiled-package smoke test needs Node 20.6+).
 
 ## Releasing
 
-Push a `vX.Y.Z` tag matching `package.json`; `.github/workflows/release.yml` validates, publishes to npm (needs the `NPM_TOKEN` secret) and creates the GitHub release.
+Push a tag matching `package.json` (`vX.Y.Z` or `X.Y.Z`); `.github/workflows/release.yml` validates, publishes to npm when that version is not there yet (needs the `NPM_TOKEN` secret) and creates the GitHub release.
