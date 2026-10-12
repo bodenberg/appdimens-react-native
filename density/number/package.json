@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/density/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/density/number.js",
+  "module": "../../lib/module/strategies/density/number.js",
+  "types": "../../lib/typescript/strategies/density/number.d.ts",
+  "react-native": "../../src/strategies/density/number.ts",
+  "sideEffects": true
+}

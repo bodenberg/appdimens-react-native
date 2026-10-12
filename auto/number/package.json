@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/auto/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/auto/number.js",
+  "module": "../../lib/module/strategies/auto/number.js",
+  "types": "../../lib/typescript/strategies/auto/number.d.ts",
+  "react-native": "../../src/strategies/auto/number.ts",
+  "sideEffects": true
+}

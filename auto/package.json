@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/auto",
+  "private": true,
+  "main": "../lib/commonjs/strategies/auto/index.js",
+  "module": "../lib/module/strategies/auto/index.js",
+  "types": "../lib/typescript/strategies/auto/index.d.ts",
+  "react-native": "../src/strategies/auto/index.ts",
+  "sideEffects": false
+}

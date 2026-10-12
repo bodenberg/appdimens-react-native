@@ -110,7 +110,6 @@ coverage/
 .nyc_output/
 
 # Package manager files
-package-lock.json
 yarn.lock
 
 # Documentation

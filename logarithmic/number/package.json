@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/logarithmic/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/logarithmic/number.js",
+  "module": "../../lib/module/strategies/logarithmic/number.js",
+  "types": "../../lib/typescript/strategies/logarithmic/number.d.ts",
+  "react-native": "../../src/strategies/logarithmic/number.ts",
+  "sideEffects": true
+}

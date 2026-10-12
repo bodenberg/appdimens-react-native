@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/fit/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/fit/number.js",
+  "module": "../../lib/module/strategies/fit/number.js",
+  "types": "../../lib/typescript/strategies/fit/number.d.ts",
+  "react-native": "../../src/strategies/fit/number.ts",
+  "sideEffects": true
+}

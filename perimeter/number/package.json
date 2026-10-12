@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/perimeter/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/perimeter/number.js",
+  "module": "../../lib/module/strategies/perimeter/number.js",
+  "types": "../../lib/typescript/strategies/perimeter/number.d.ts",
+  "react-native": "../../src/strategies/perimeter/number.ts",
+  "sideEffects": true
+}

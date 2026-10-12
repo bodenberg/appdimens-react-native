@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/interpolated/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/interpolated/number.js",
+  "module": "../../lib/module/strategies/interpolated/number.js",
+  "types": "../../lib/typescript/strategies/interpolated/number.d.ts",
+  "react-native": "../../src/strategies/interpolated/number.ts",
+  "sideEffects": true
+}

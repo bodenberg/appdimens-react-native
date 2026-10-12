@@ -1,81 +1,80 @@
 /**
- * Author & Developer: Jean Bodenberg
- * GIT: https://github.com/bodenberg/appdimens.git
- * Date: 2025-01-27
+ * AppDimens Dynamic for React Native.
  *
- * Library: AppDimens React Native - Main Export
+ * Main entry = Android principal artifact (`appdimens-dynamic`): core + **scaled** strategy
+ * (`sdp`, `hdp`, `wdp`, `ssp`, `sem`, facilitators, builders) + React integration.
  *
- * Description:
- * Main export file for AppDimens React Native library.
- * Provides all public APIs for responsive dimension management.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Other strategies live in sub-paths, mirroring the Android satellites:
+ *   appdimens-react-native/{percent,power,fluid,auto,diagonal,fill,fit,interpolated,
+ *                            logarithmic,perimeter,density,resize,units}
  */
 
-// Core classes
-export {AppDimens, appDimens} from './core/AppDimens';
-export {AppDimensFixed} from './core/AppDimensFixed';
-export {AppDimensDynamic} from './core/AppDimensDynamic';
-export {AppDimensFluid, fluid} from './core/AppDimensFluid';
-export {AppDimensAdjustmentFactors} from './core/AppDimensAdjustmentFactors';
-
-// v2.0 Unified Builder with 13 strategies
+// Shared types and enums (com.appdimens.dynamic.common)
 export {
-  AppDimensBuilder,
-  balanced,
-  logarithmic,
-  power,
-  defaultStrategy,
-  percentage,
-  fluidStrategy,
-  smart,
-  fx,
-  dy,
-} from './core/AppDimensBuilder';
-
-// v2.0 Calculator
-export * as Calculator from './core/Calculator';
-
-// v2.0 Strategies and Types
-export {
-  ScalingStrategy,
-  PerceptualModel,
-  ElementType,
-  getStrategyDescription,
-  getStrategyRecommendation,
-  getStrategyFormula,
-} from './types/ScalingStrategy';
-
-// React hooks
-export {useAppDimens} from './hooks/useAppDimens';
-export {useFluid, useFluidBuilder, useFluidMultiple} from './hooks/useFluid';
-
-// Context providers
-export {
-  AppDimensProvider,
-  useAppDimensContext,
-} from './context/AppDimensProvider';
-
-// Utilities
-export {AppDimensUtils} from './utils/AppDimensUtils';
-export {
-  AppDimensPhysicalUnits,
-  PhysicalUnitConversions,
+  DpQualifier,
+  Inverter,
+  Orientation,
+  UiModeType,
   UnitType,
-} from './utils/AppDimensPhysicalUnits';
+  ScalingStrategy,
+} from './core/types';
+export type {
+  DimenFn,
+  DimenOptions,
+  DpQualifierEntry,
+  FacilitatorOptions,
+  SpFacilitatorOptions,
+} from './core/types';
 
-// Types
-export * from './types';
+// Core engine (com.appdimens.dynamic.core)
+export {DimenCache} from './core/DimenCache';
+export {
+  DimenMetrics,
+  effectiveQualifier,
+  BASE_WIDTH_DP,
+  BASE_HEIGHT_DP,
+  BASE_DIAGONAL_DP,
+  BASE_PERIMETER_DP,
+  REFERENCE_ASPECT_RATIO,
+  INV_BASE_RATIO,
+  ADJUSTMENT_SCALE,
+  SENSITIVITY_DEFAULT,
+} from './core/DimenMetrics';
+export type {DimenMetricsInput} from './core/DimenMetrics';
+export {
+  Kind,
+  plainRotate,
+  plainMode,
+  plainQualifier,
+  plainScreen,
+  plainRotatePx,
+  plainModePx,
+  plainQualifierPx,
+  plainScreenPx,
+} from './core/kernels';
+export type {
+  RotateFn,
+  ModeFn,
+  QualifierFn,
+  ScreenFn,
+  ToDynamicFn,
+  ToDynamicSpFn,
+  ToDynamicOptions,
+  ToDynamicSpOptions,
+} from './core/kernels';
+export {DimenBuilderBase, DimenDpBuilder, DimenSpBuilder} from './core/builder';
+export type {ScreenEntry} from './core/builder';
+export {installNumberExtensions, uninstallNumberExtensions} from './core/numberExtensions';
 
-// Version
-export const VERSION = '2.0.0';
+// Scaled strategy (com.appdimens.dynamic.compose / code.scaled)
+export * from './strategies/scaled';
+
+// React integration
+export {useDimenMetrics, useAppDimens} from './react/hooks';
+export {AppDimensProvider, useLocalDimenMetrics} from './react/AppDimensProvider';
+export type {AppDimensProviderProps} from './react/AppDimensProvider';
+export {createDimenStyles, DimenStyleSheet} from './react/styles';
+export type {DimenStylesHook, DimenToken} from './react/styles';
+
+/** Library version (aligned with appdimens-dynamic for Android). */
+export const VERSION = '3.2.0';

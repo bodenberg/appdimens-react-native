@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/fill",
+  "private": true,
+  "main": "../lib/commonjs/strategies/fill/index.js",
+  "module": "../lib/module/strategies/fill/index.js",
+  "types": "../lib/typescript/strategies/fill/index.d.ts",
+  "react-native": "../src/strategies/fill/index.ts",
+  "sideEffects": false
+}

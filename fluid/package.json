@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/fluid",
+  "private": true,
+  "main": "../lib/commonjs/strategies/fluid/index.js",
+  "module": "../lib/module/strategies/fluid/index.js",
+  "types": "../lib/typescript/strategies/fluid/index.d.ts",
+  "react-native": "../src/strategies/fluid/index.ts",
+  "sideEffects": false
+}

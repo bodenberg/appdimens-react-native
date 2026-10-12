@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/logarithmic",
+  "private": true,
+  "main": "../lib/commonjs/strategies/logarithmic/index.js",
+  "module": "../lib/module/strategies/logarithmic/index.js",
+  "types": "../lib/typescript/strategies/logarithmic/index.d.ts",
+  "react-native": "../src/strategies/logarithmic/index.ts",
+  "sideEffects": false
+}

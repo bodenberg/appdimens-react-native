@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/fill/number",
+  "private": true,
+  "main": "../../lib/commonjs/strategies/fill/number.js",
+  "module": "../../lib/module/strategies/fill/number.js",
+  "types": "../../lib/typescript/strategies/fill/number.d.ts",
+  "react-native": "../../src/strategies/fill/number.ts",
+  "sideEffects": true
+}
