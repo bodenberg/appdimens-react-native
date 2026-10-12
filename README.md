@@ -63,7 +63,7 @@ Requirements: React Native ≥ 0.64 (React ≥ 16.8; React 18 uses `useSyncExter
 | `appdimens-react-native/resize` | `…-resize` | `AutoResizeText`, `useAutoResize*`, `DimenResize` |
 | `appdimens-react-native/units` | `…-units` | `mm()`, `cm()`, `inch()`, `DimenPhysicalUnits` |
 
-Strategies you do not import are not bundled. Per-strategy guides: [docs/](docs/README.md).
+Strategies you do not import are not bundled. Per-strategy guides: [docs/](docs/README.md). Naming rules: [docs/API-CONVENTIONS.md](docs/API-CONVENTIONS.md). Coming from Android: [docs/MIGRATION-FROM-ANDROID.md](docs/MIGRATION-FROM-ANDROID.md).
 
 > Using an old Metro without package `exports` support? The sub-paths still resolve through the proxy folders shipped in the package (`power/package.json`, …).
 
@@ -268,7 +268,7 @@ TV is detected automatically (`Platform.isTV`), and visionOS as `VR_HEADSET`. Fo
 | React | `useDimenMetrics`, `useAppDimens`, `AppDimensProvider`, `useLocalDimenMetrics`, `createDimenStyles`, `DimenStyleSheet` |
 | Extensions | `appdimens-react-native/number`, `…/<strategy>/number`, `installNumberExtensions` |
 
-Full math: [docs/](docs/README.md) and the Android [MATHEMATICS-AND-CALCULUS.md](https://github.com/bodenberg/appdimens-dynamic/blob/main/DOCUMENTATION/MATHEMATICS-AND-CALCULUS.md).
+Full math: [docs/](docs/README.md), [docs/PERFORMANCE.md](docs/PERFORMANCE.md) and the Android [MATHEMATICS-AND-CALCULUS.md](https://github.com/bodenberg/appdimens-dynamic/blob/main/DOCUMENTATION/MATHEMATICS-AND-CALCULUS.md).
 
 ---
 
@@ -298,6 +298,10 @@ Numbers vary by machine and engine (Hermes vs V8); the point is that dimension r
 - Text auto-resize uses an estimator unless you pass a `measure` function.
 - High-level resize helpers return `min` instead of `0` when nothing fits.
 
+## For AI assistants
+
+[skills/SKILL.md](skills/SKILL.md) (with [library-map.md](skills/library-map.md) and [reference.md](skills/reference.md)) is an agent skill covering install, strategy selection, reactivity and resize; [LLMS.txt](LLMS.txt) indexes the docs for LLM tools.
+
 ## Development
 
 ```bash
@@ -307,7 +311,7 @@ npm run validate      # generated check + typecheck + lint + format + tests + bu
 npm run bench
 ```
 
-Generated files (`src/strategies/*`, root proxy folders) must not be edited by hand. CI runs `validate` on Node 18/20/22; pushing a `vX.Y.Z` tag publishes to npm (needs the `NPM_TOKEN` secret).
+Generated files (`src/strategies/*`, root proxy folders) must not be edited by hand. See [CONTRIBUTING.md](CONTRIBUTING.md). CI runs `validate` on Node 18/20/22; pushing a `vX.Y.Z` tag publishes to npm (needs the `NPM_TOKEN` secret).
 
 ## Português (resumo)
 

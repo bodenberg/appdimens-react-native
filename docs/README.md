@@ -2,6 +2,13 @@
 
 Responsive dimension helpers for React Native. Each strategy has its own guide. Start with the scaled guide, and change strategy only where a layout needs a different curve.
 
+## Cross-cutting guides
+
+- [API conventions](API-CONVENTIONS.md) — prefixes, suffixes, `Px` naming, facilitators, Plain chains, builders, escape hatches.
+- [Migrating from Android](MIGRATION-FROM-ANDROID.md) — Compose/Views → React Native translation and behavioural differences.
+- [Performance](PERFORMANCE.md) — snapshot + factor-table architecture and benchmark.
+- [Agent skill](../skills/SKILL.md) — workflow for AI assistants working with the library.
+
 ## Strategy index
 
 | Guide | Import | Prefix | When to use |
