@@ -1,9 +1,11 @@
 name: Release
 
-# Publishes to npm when a version tag (vX.Y.Z) is pushed. Requires the NPM_TOKEN secret.
+# Runs when a version tag is pushed (`v3.2.1` or `3.2.1`). Validates the package, publishes it
+# to npm when that version is not on the registry yet (requires the NPM_TOKEN secret) and
+# creates the GitHub release.
 on:
   push:
-    tags: ['v*.*.*']
+    tags: ['v*.*.*', '[0-9]+.[0-9]+.[0-9]+*']
 
 permissions:
   contents: write
@@ -13,8 +15,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -22,14 +24,32 @@ jobs:
       - run: npm ci
       - name: Tag matches package.json version
         run: |
-          PKG="v$(node -p "require('./package.json').version")"
-          if [ "$PKG" != "${GITHUB_REF_NAME}" ]; then
-            echo "Tag ${GITHUB_REF_NAME} does not match package.json ${PKG}"; exit 1
+          PKG="$(node -p "require('./package.json').version")"
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$PKG" != "$TAG" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version ${PKG}"; exit 1
           fi
+          echo "VERSION=$PKG" >> "$GITHUB_ENV"
       - run: npm run validate
-      - run: npm publish --provenance --access public
+      - name: Check whether this version is already on npm
+        id: npm
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          if npm view "${NAME}@${VERSION}" version >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${NAME}@${VERSION} is already on npm — skipping publish"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish to npm
+        if: steps.npm.outputs.published == 'false'
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "::error::NPM_TOKEN secret is not set"; exit 1
+          fi
+          npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
