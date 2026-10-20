@@ -58,6 +58,18 @@ toDynamic<Strategy>{Dp,Px,Sp,SpPx}
 
 `DimenCache.currentMetrics` (`screenWidthDp`, `screenHeightDp`, `smallestWidthDp`, `density`, `fontScale`, `orientation`, `uiModeType`, `isInMultiWindowMode`, `version`) · `subscribe` · `refresh` · `setUiModeType` · `setMultiWindowMode` · `setMetricsOverride` · `getCachedUiModeType`
 
+## Custom strategies (`/custom`)
+
+- **Define:** `defineCustomStrategy({id, reference?, axis?, curve?, multiplier?, clamp?, valueClamp?, aspectRatio?, fontScale?, ignoreMultiWindow?, transform?, rules?, extends?})`. It registers the strategy.
+- **JSON:** `loadCustomStrategies(json)` registers every strategy and applies `default`. Export with `exportCustomStrategies()`.
+- **Use:**
+  - `cdp(v, s?)` (dp) · `cdpPx` · `csp(v, s?)` (fontSize) · `cspPx`.
+  - `s.dp/px/sp/spDp/spPx/factor/explain/extend/withAxis/toJSON`.
+- **React:** `<CustomStrategyProvider strategy>` + `useCustomStrategy(s?)` → bound helpers (re-render on window change).
+- **Default:** `setDefaultCustomStrategy(s)`. Before it is set, the default is `BuiltInStrategies.SCALED`, which equals `sdp`.
+- **Extensions:** `import '…/custom/number'` → `(16).cdp`, `(14).csp`, `(16).cdpWith(s)`.
+- **Presets:** `CustomPresets.{TABLET_FRIENDLY, COMPACT_FIRST, TV_SAFE, WEARABLE, GAME_HUD, READABLE_TEXT}`. Built-ins: `BuiltInStrategies.{SCALED, POWER, …, FIXED}`.
+
 ## Resize (`/resize`) and units (`/units`)
 
 `<AutoResizeText minSp maxSp stepSp maxLines constrainHeight measure>` · `useAutoResizeTextSp(text, opts)` · `useAutoResize{Square,Width,Height}Size({min,max,step,contentPadding})` · `…SizePercent({minPercent,maxPercent,stepPercent,basis})` · `DimenResize.range/rangePx/fitting/fittingInner*/fittingTextSp/fittingTextSpPx/fittingTextSpPercent` · `resizeFixedDp/Sp`, `resizePercentSw/W/H`

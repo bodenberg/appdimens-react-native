@@ -27,6 +27,7 @@ Responsive dimension helpers for React Native. Each strategy has its own guide. 
 | [Density](density.md) | `/density` | `d` | Matching pixel-density buckets of static assets. |
 | [Resize](resize.md) | `/resize` | none | Fitting text and boxes inside a container. |
 | [Physical units](physical-units.md) | `/units` | none | Real-world values in mm, cm and inches. |
+| [Custom](custom.md) | `/custom` | `cdp` / `csp` | Your own strategy (config / JSON shared with every AppDimens platform, rules per device and screen). |
 
 "Import" is the path after `appdimens-react-native`. For example, `appdimens-react-native/power`.
 

@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/custom/number",
+  "private": true,
+  "main": "../../lib/commonjs/custom/number.js",
+  "module": "../../lib/module/custom/number.js",
+  "types": "../../lib/typescript/custom/number.d.ts",
+  "react-native": "../../src/custom/number.ts",
+  "sideEffects": true
+}

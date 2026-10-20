@@ -12,6 +12,8 @@ Read this when you need module locations, the Android ↔ React Native correspon
 | `appdimens-react-native/number` | — | `src/number.ts` (scaled getters) |
 | `appdimens-react-native/resize` | `appdimens-dynamic-resize` | `src/resize/*` |
 | `appdimens-react-native/units` | `appdimens-dynamic-units` | `src/units/index.ts` |
+| `appdimens-react-native/custom` | `appdimens-dynamic-custom` | `src/custom/index.ts` (binding, React provider/hook) + `src/custom/engine.ts` (pure engine, same as `webdimens/custom`) |
+| `appdimens-react-native/custom/number` | — | `src/custom/number.ts` (`(16).cdp`, `(16).cdpWith(s)`) |
 
 Strategies: `percent` (p), `power` (pw), `fluid` (f), `auto` (a), `diagonal` (dg), `fill` (fl), `fit` (ft), `interpolated` (i), `logarithmic` (log), `perimeter` (pr), `density` (d). Resolution: package `exports` map, plus root proxy folders (`power/package.json`, …) for old Metro / TypeScript `moduleResolution: node`.
 
@@ -46,6 +48,7 @@ Strategies: `percent` (p), `power` (pw), `fluid` (f), `auto` (a), `diagonal` (dg
 | density | [docs/density.md](../docs/density.md) |
 | resize | [docs/resize.md](../docs/resize.md) |
 | units | [docs/physical-units.md](../docs/physical-units.md) |
+| custom | [docs/custom.md](../docs/custom.md) |
 
 Cross-cutting: [docs/API-CONVENTIONS.md](../docs/API-CONVENTIONS.md) · [docs/MIGRATION-FROM-ANDROID.md](../docs/MIGRATION-FROM-ANDROID.md) · [docs/PERFORMANCE.md](../docs/PERFORMANCE.md)
 

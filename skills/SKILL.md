@@ -1,6 +1,6 @@
 ---
 name: appdimens-react-native-workflow
-description: Use this skill for any React Native responsive layout or scaling question — making apps look right on phones, tablets, foldables, TVs or different window sizes — and whenever the user mentions appdimens-react-native, appdimens-dynamic, sdp, hdp, wdp, ssp, sem, DimenCache, useDimenMetrics, createDimenStyles, DimenStyleSheet, AutoResizeText, autoResize, responsive dp/sp, or scaling strategies. Also trigger when the user wants to install the package, port Android (Compose/Views) AppDimens code to React Native, choose a strategy, implement constraint-based resize, or convert fixed style numbers to scaled values. When in doubt, use this skill — it covers install, strategy selection, implementation, reactivity and resize.
+description: Use this skill for any React Native responsive layout or scaling question (including custom scaling strategies: defineCustomStrategy, cdp/csp, per-device scaling rules, scaling JSON shared across platforms) — making apps look right on phones, tablets, foldables, TVs or different window sizes — and whenever the user mentions appdimens-react-native, appdimens-dynamic, sdp, hdp, wdp, ssp, sem, DimenCache, useDimenMetrics, createDimenStyles, DimenStyleSheet, AutoResizeText, autoResize, responsive dp/sp, or scaling strategies. Also trigger when the user wants to install the package, port Android (Compose/Views) AppDimens code to React Native, choose a strategy, implement constraint-based resize, or convert fixed style numbers to scaled values. When in doubt, use this skill — it covers install, strategy selection, implementation, reactivity and resize.
 ---
 
 # AppDimens Dynamic for React Native — project workflow
@@ -97,6 +97,14 @@ Read the matching guide in [docs/](../docs/README.md) before recommending one; q
 | Density | `/density`, `d` | matching pixel-density assets | layout tokens (multiplies by PixelRatio) |
 | Physical units | `/units` | mm/cm/inch sizing | Material-style layout |
 | Resize | `/resize` | fit text/boxes inside a container | whole-screen proportional layout |
+| **Custom** | `/custom`, `cdp` / `csp` | no built-in passes QA; one law shared across apps/platforms; TV / watch / car rules | a built-in already fits (less to maintain) |
+
+**Custom strategy workflow.** Read [docs/custom.md](../docs/custom.md) first.
+1. Start from a built-in or preset: `BuiltInStrategies.POWER.extend('x', …)`, `CustomPresets.TABLET_FRIENDLY`, or `"extends"`.
+2. Keep one source: a JSON file loaded with `loadCustomStrategies(require(…))`, or one `strategies.ts` module. Reuse the ids from `appdimens.config.json` (`customStrategies`) when it exists.
+3. Express device or screen differences as `rules`, never as `if`s at call sites.
+4. In components, use `useCustomStrategy()` (it re-renders) or `<CustomStrategyProvider>`. For `fontSize`, use `csp` / `s.sp()`, never a `Px` value.
+5. Verify with `strategy.explain()` on a phone and a tablet.
 
 ---
 

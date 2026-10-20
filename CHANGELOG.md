@@ -5,6 +5,16 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/). Versions are aligned with
 [AppDimens Dynamic for Android](https://github.com/bodenberg/appdimens-dynamic).
 
+## [Unreleased]
+
+### Added
+- **Custom scaling strategies (`appdimens-react-native/custom`)**, a port of Android `appdimens-dynamic-custom`.
+  - **Config format:** the same JSON as every AppDimens platform. It covers reference frame, axis, curves (linear, power, logarithmic, interpolated, constant, breakpoints, function), factor/value bounds, aspect ratio, font-scale policy, and rules per device class / screen range / orientation / multi-window.
+  - **Composition:** `extends` built-ins and presets.
+  - **APIs:** `defineCustomStrategy`, `loadCustomStrategies`, `cdp` / `csp` / `cdpPx` / `cspPx`, `CustomStrategyProvider` / `useCustomStrategy`, `setDefaultCustomStrategy`, and opt-in `(16).cdp` / `(16).cdpWith(brand)` via `/custom/number`.
+  - **Device class** comes from UI mode, `Platform.isTV`, desktop platforms and size, and can be overridden.
+  - **Tests:** a cross-platform parity fixture.
+
 ## [3.2.0] - 2026-10-12
 
 Complete rewrite as a port of **AppDimens Dynamic 3.2.0** (Android). The 2.x API

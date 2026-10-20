@@ -1,0 +1,9 @@
+{
+  "name": "appdimens-react-native/custom",
+  "private": true,
+  "main": "../lib/commonjs/custom/index.js",
+  "module": "../lib/module/custom/index.js",
+  "types": "../lib/typescript/custom/index.d.ts",
+  "react-native": "../src/custom/index.ts",
+  "sideEffects": false
+}
