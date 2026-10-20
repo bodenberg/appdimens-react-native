@@ -4,7 +4,7 @@
 
 Important notes:
 - npm package `appdimens-react-native`, version **3.2.0** (aligned with the Android library).
-- Main entry = core + **scaled** strategy + React integration. Other strategies are sub-paths: `/percent` (p), `/power` (pw), `/fluid` (f), `/auto` (a), `/diagonal` (dg), `/fill` (fl), `/fit` (ft), `/interpolated` (i), `/logarithmic` (log), `/perimeter` (pr), `/density` (d), plus `/resize`, `/units` and `/custom` (user-defined strategies: `defineCustomStrategy`, `cdp(16, brand)`, `useCustomStrategy`, JSON shared with every AppDimens platform).
+- Main entry = core + **scaled** strategy + React integration. Other strategies are sub-paths: `/percent` (p), `/power` (pw), `/fluid` (f), `/auto` (a), `/diagonal` (dg), `/fill` (fl), `/fit` (ft), `/interpolated` (i), `/logarithmic` (log), `/perimeter` (pr), `/density` (d), plus `/resize`, `/units` and `/custom` (user-defined strategies: `defineCustomStrategy`, `cdp(16, brand)`, `useCustomStrategy`, JSON shared with every AppDimens platform, free-form text formulas `{type: 'expression'}` / `formula`).
 - Functions take the design value: `sdp(16)`; results are dp (React Native layout units); `Px` variants return physical pixels; `ssp` is a `fontSize` (RN applies font scale), `sem` ignores the font scale.
 - Components must subscribe to window changes: `useDimenMetrics()`, or styles via `createDimenStyles(() => …)` / `DimenStyleSheet.create({padding: '16sdp'})`.
 - Optional Kotlin-style syntax: `import 'appdimens-react-native/number'` then `(16).sdp`.

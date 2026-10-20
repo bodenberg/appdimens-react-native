@@ -7,12 +7,19 @@
  *
  *   ratio  = axis(window) / axis(reference)
  *   factor = clamp(curve(ratio) × multiplier × AR, minFactor, maxFactor)
- *   dp     = transform(clampValue(base × factor, minValue, maxValue))
+ *   dp     = formula(clampValue(base × factor, minValue, maxValue))
  *
  * Pure TypeScript: no React Native imports, so it can be unit-tested and shared.
  */
 
 /** Screen measure a strategy scales against. */
+import {
+  CURVE_VARIABLES,
+  FORMULA_VARIABLES,
+  ScalingExpression,
+  expressionVariables,
+} from './expression';
+
 export type ScalingAxis =
   | 'smallestWidth'
   | 'width'
@@ -104,6 +111,8 @@ export type CurveSpec =
   | {type: 'interpolated'; t?: number}
   | {type: 'constant'; factor?: number}
   | {type: 'breakpoints'; points: ReadonlyArray<{at: number; factor: number}>}
+  /** Free-form formula as text (JSON-serializable) — see `expression.ts`. */
+  | {type: 'expression'; expression: string}
   | {type: 'custom'; fn: CurveFunction};
 
 export interface RangeSpec {
@@ -129,6 +138,11 @@ export interface ScalingPatchSpec {
   ignoreMultiWindow?: boolean;
   /** Code-only per-value hook (not JSON). */
   transform?: ValueTransform;
+  /**
+   * Per-value formula as text (JSON-serializable), e.g. `"max(scaled, base)"` or
+   * `"base * pow(sw / 360, 0.7) + 2"`. `null` (root only) clears an inherited formula.
+   */
+  formula?: string | null;
 }
 
 /** `min <= value < max` ranges; every field set must match. */
@@ -177,6 +191,7 @@ export type Curve =
       readonly type: 'breakpoints';
       readonly points: ReadonlyArray<{readonly at: number; readonly factor: number}>;
     }
+  | {readonly type: 'expression'; readonly expression: ScalingExpression}
   | {readonly type: 'custom'; readonly fn: CurveFunction};
 
 export type FontScalePolicy =
@@ -198,6 +213,7 @@ export interface ScalingPatch {
   readonly fontScale?: FontScalePolicy;
   readonly ignoreMultiWindow?: boolean;
   readonly transform?: ValueTransform;
+  readonly formula?: ScalingExpression;
 }
 
 export interface ScreenCondition {
@@ -234,6 +250,8 @@ export interface ScalingConfig {
   readonly fontScale: FontScalePolicy;
   readonly ignoreMultiWindow: boolean;
   readonly transform?: ValueTransform;
+  /** Per-value text formula; takes the place of `transform`. */
+  readonly formula?: ScalingExpression;
   readonly rules: readonly ScalingRule[];
 }
 
@@ -255,13 +273,19 @@ export function applyPatch(config: ScalingConfig, patch: ScalingPatch): ScalingC
     const v = patch[key];
     if (v !== undefined) (out as Record<string, unknown>)[key] = v;
   }
+  // A formula and a code transform are alternatives: setting one replaces the other.
+  if (patch.formula !== undefined) delete out.transform;
+  else if (patch.transform !== undefined) delete out.formula;
   return out;
 }
 
 /** True when some path depends on the value itself (bounds / transform). */
 export function isValueDependent(config: ScalingConfig): boolean {
   const dependent = (p: ScalingPatch): boolean =>
-    p.minValue !== undefined || p.maxValue !== undefined || p.transform !== undefined;
+    p.minValue !== undefined ||
+    p.maxValue !== undefined ||
+    p.transform !== undefined ||
+    p.formula !== undefined;
   return dependent(config) || config.rules.some(r => dependent(r.patch));
 }
 
@@ -349,8 +373,14 @@ export function evaluateCurve(
   ratio: number,
   axisDp: number,
   screen: ScreenSnapshot,
+  refDp = NaN,
+  reference: {readonly width: number; readonly height: number} = DEFAULT_CONFIG.reference,
 ): number {
   switch (curve.type) {
+    case 'expression':
+      return curve.expression.evaluate(
+        expressionVariables(screen, ratio, axisDp, refDp, reference),
+      );
     case 'linear':
       return ratio;
     case 'power':
@@ -403,7 +433,21 @@ export class ResolvedScaling {
       if (max !== undefined && magnitude > max) magnitude = max;
       out = out < 0 ? -magnitude : magnitude;
     }
-    if (this.config.transform) out = this.config.transform(base, out, this.screen);
+    if (this.config.formula) {
+      const ratio = this.referenceDp > 0 ? this.axisDp / this.referenceDp : 1;
+      out = this.config.formula.evaluate(
+        expressionVariables(
+          this.screen,
+          ratio,
+          this.axisDp,
+          this.referenceDp,
+          this.config.reference,
+          base,
+          out,
+          this.factor,
+        ),
+      );
+    } else if (this.config.transform) out = this.config.transform(base, out, this.screen);
     return out;
   }
 
@@ -459,6 +503,8 @@ function curveName(c: Curve): string {
       return `constant(${c.factor})`;
     case 'breakpoints':
       return `breakpoints(${c.points.length})`;
+    case 'expression':
+      return `expression(${c.expression.source})`;
     case 'custom':
       return 'custom';
   }
@@ -480,7 +526,7 @@ export function resolveScaling(base: ScalingConfig, screen: ScreenSnapshot): Res
     return new ResolvedScaling(screen, cfg, 1, applied, axisDp, refDp, 1, 1);
   }
   const ratio = refDp > 0 ? axisDp / refDp : 1;
-  const curveFactor = evaluateCurve(cfg.curve, ratio, axisDp, screen);
+  const curveFactor = evaluateCurve(cfg.curve, ratio, axisDp, screen, refDp, cfg.reference);
   let factor = curveFactor * cfg.multiplier;
   let arMul = 1;
   if (cfg.aspectRatio) {
@@ -527,6 +573,12 @@ function readCurve(v: unknown, path: string): Curve {
       return {type: 'interpolated', t: num(o.t, `${path}.t`) ?? 0.5};
     case 'constant':
       return {type: 'constant', factor: num(o.factor, `${path}.factor`) ?? 1};
+    case 'expression':
+      if (typeof o.expression !== 'string') throw new TypeError(`${path}.expression is required`);
+      return {
+        type: 'expression',
+        expression: parseAt(o.expression, CURVE_VARIABLES, `${path}.expression`),
+      };
     case 'custom':
       if (typeof o.fn !== 'function') throw new TypeError(`${path}.fn must be a function`);
       return {type: 'custom', fn: o.fn as CurveFunction};
@@ -544,8 +596,16 @@ function readCurve(v: unknown, path: string): Curve {
     }
     default:
       throw new TypeError(
-        `${path}.type '${String(o.type)}' is not one of linear, power, logarithmic, interpolated, constant, breakpoints`,
+        `${path}.type '${String(o.type)}' is not one of linear, power, logarithmic, interpolated, constant, breakpoints, expression`,
       );
+  }
+}
+
+function parseAt(source: string, allowed: readonly string[], path: string): ScalingExpression {
+  try {
+    return ScalingExpression.parse(source, allowed);
+  } catch (e) {
+    throw new SyntaxError(`${path}: ${(e as Error).message}`);
   }
 }
 
@@ -612,6 +672,10 @@ export function readPatch(o: ScalingPatchSpec, path: string): ScalingPatch {
       throw new TypeError(`${path}.transform must be a function`);
     out.transform = o.transform;
   }
+  if (o.formula !== undefined && o.formula !== null) {
+    if (typeof o.formula !== 'string') throw new TypeError(`${path}.formula must be a string`);
+    out.formula = parseAt(o.formula, FORMULA_VARIABLES, `${path}.formula`);
+  }
   for (const k of Object.keys(out) as (keyof ScalingPatch)[])
     if (out[k] === undefined) delete out[k];
   return Object.freeze(out);
@@ -663,6 +727,7 @@ export function configFromSpec(
   let cfg = applyPatch(parent, readPatch(spec, path));
   if (spec.clamp === null) cfg = {...cfg, minFactor: undefined, maxFactor: undefined};
   if (spec.valueClamp === null) cfg = {...cfg, minValue: undefined, maxValue: undefined};
+  if (spec.formula === null) cfg = {...cfg, formula: undefined};
   const rules = (spec.rules ?? []).map((r, i) => {
     if (!r || typeof r !== 'object' || !r.set)
       throw new TypeError(`${path}.rules[${i}].set is required`);
@@ -689,6 +754,8 @@ function curveToSpec(c: Curve): CurveSpec {
       return {type: 'constant', factor: c.factor};
     case 'breakpoints':
       return {type: 'breakpoints', points: c.points.map(p => ({at: p.at, factor: p.factor}))};
+    case 'expression':
+      return {type: 'expression', expression: c.expression.source};
     case 'custom':
       throw new TypeError('Custom curve functions cannot be encoded to JSON');
   }
@@ -727,6 +794,7 @@ function patchToSpec(p: ScalingPatch, defaults: boolean): ScalingPatchSpec {
     o.fontScale = fontScaleToSpec(p.fontScale);
   if (p.ignoreMultiWindow !== undefined && (!defaults || p.ignoreMultiWindow))
     o.ignoreMultiWindow = p.ignoreMultiWindow;
+  if (p.formula) o.formula = p.formula.source;
   return o;
 }
 

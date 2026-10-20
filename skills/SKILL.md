@@ -102,7 +102,7 @@ Read the matching guide in [docs/](../docs/README.md) before recommending one; q
 **Custom strategy workflow.** Read [docs/custom.md](../docs/custom.md) first.
 1. Start from a built-in or preset: `BuiltInStrategies.POWER.extend('x', …)`, `CustomPresets.TABLET_FRIENDLY`, or `"extends"`.
 2. Keep one source: a JSON file loaded with `loadCustomStrategies(require(…))`, or one `strategies.ts` module. Reuse the ids from `appdimens.config.json` (`customStrategies`) when it exists.
-3. Express device or screen differences as `rules`, never as `if`s at call sites.
+3. Express device or screen differences as `rules`, never as `if`s at call sites. When no curve fits, write the law as text (`curve: {type: 'expression', expression: '…'}` or `formula: '…'`); prefer that over JS functions when it lives in JSON or is shared with other platforms.
 4. In components, use `useCustomStrategy()` (it re-renders) or `<CustomStrategyProvider>`. For `fontSize`, use `csp` / `s.sp()`, never a `Px` value.
 5. Verify with `strategy.explain()` on a phone and a tablet.
 

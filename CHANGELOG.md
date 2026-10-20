@@ -9,7 +9,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 - **Custom scaling strategies (`appdimens-react-native/custom`)**, a port of Android `appdimens-dynamic-custom`.
-  - **Config format:** the same JSON as every AppDimens platform. It covers reference frame, axis, curves (linear, power, logarithmic, interpolated, constant, breakpoints, function), factor/value bounds, aspect ratio, font-scale policy, and rules per device class / screen range / orientation / multi-window.
+  - **Config format:** the same JSON as every AppDimens platform. It covers reference frame, axis, curves (linear, power, logarithmic, interpolated, constant, breakpoints, free-form text `expression`, function), a per-value text `formula`, factor/value bounds, aspect ratio, font-scale policy, and rules per device class / screen range / orientation / multi-window.
   - **Composition:** `extends` built-ins and presets.
   - **APIs:** `defineCustomStrategy`, `loadCustomStrategies`, `cdp` / `csp` / `cdpPx` / `cspPx`, `CustomStrategyProvider` / `useCustomStrategy`, `setDefaultCustomStrategy`, and opt-in `(16).cdp` / `(16).cdpWith(brand)` via `/custom/number`.
   - **Device class** comes from UI mode, `Platform.isTV`, desktop platforms and size, and can be overridden.

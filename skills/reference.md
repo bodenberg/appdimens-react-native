@@ -60,7 +60,8 @@ toDynamic<Strategy>{Dp,Px,Sp,SpPx}
 
 ## Custom strategies (`/custom`)
 
-- **Define:** `defineCustomStrategy({id, reference?, axis?, curve?, multiplier?, clamp?, valueClamp?, aspectRatio?, fontScale?, ignoreMultiWindow?, transform?, rules?, extends?})`. It registers the strategy.
+- **Define:** `defineCustomStrategy({id, reference?, axis?, curve?, multiplier?, clamp?, valueClamp?, aspectRatio?, fontScale?, ignoreMultiWindow?, formula?, transform?, rules?, extends?})`. It registers the strategy.
+- **Free-form formulas:** `curve: {type: 'expression', expression: 'pow(ratio, 0.8) * (tablet ? 0.9 : 1)'}` (factor, memoized) and `formula: 'base * pow(sw / 360, 0.7) + 2'` (per value). Variables `sw width height shortSide longSide diagonal perimeter aspectRatio density fontScale`, flags `landscape portrait multiWindow phone tablet desktop tv watch car vr`, `ratio axis ref refWidth refHeight` (curve), `base scaled factor` (formula); functions `min max clamp pow sqrt ln log log10 log2 exp abs sign floor ceil round lerp step smoothstep`. Same results on every AppDimens platform; `ScalingExpression.parse` validates early.
 - **JSON:** `loadCustomStrategies(json)` registers every strategy and applies `default`. Export with `exportCustomStrategies()`.
 - **Use:**
   - `cdp(v, s?)` (dp) · `cdpPx` · `csp(v, s?)` (fontSize) · `cspPx`.

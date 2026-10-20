@@ -9,7 +9,7 @@ Define **your own** scaling strategy when none of the built-in curves fits, or w
 ```
 ratio  = axis(window) / axis(reference)
 factor = clamp( curve(ratio) × multiplier × AR , clamp.min, clamp.max )
-dp     = transform( valueClamp( value × factor ) )
+dp     = formula( valueClamp( value × factor ) )
 ```
 
 Rules override any field per device class (`phone`, `tablet`, `desktop`, `tv`, `watch`, `car`, `vr`), screen range (smallest width, width, height, aspect ratio), orientation and multi-window.
@@ -76,16 +76,47 @@ setDefaultCustomStrategy(brand);
 |---|---|---|
 | `reference` | `{width: 360, height: 640}` | 300 × 533 |
 | `axis` | `'smallestWidth'` · `'width'` · `'height'` · `'min'` · `'max'` · `'diagonal'` · `'perimeter'` | `'smallestWidth'` |
-| `curve` | `'linear'` · `{type: 'power', exponent}` · `{type: 'logarithmic', k}` · `{type: 'interpolated', t}` · `{type: 'constant', factor}` · `{type: 'breakpoints', points: [{at, factor}]}` · `{type: 'custom', fn}` | `'linear'` |
+| `curve` | `'linear'` · `{type: 'power', exponent}` · `{type: 'logarithmic', k}` · `{type: 'interpolated', t}` · `{type: 'constant', factor}` · `{type: 'breakpoints', points: [{at, factor}]}` · `{type: 'expression', expression}` (free-form text, see below) · `{type: 'custom', fn}` | `'linear'` |
 | `multiplier` | `0.9` | 1 |
 | `clamp` | `{min, max}` (factor) | none |
 | `valueClamp` | `{min, max}` (resulting dp, magnitude) | none |
 | `aspectRatio` | `true` · `{enabled, sensitivity}` | off |
 | `fontScale` | `'follow'` · `'ignore'` · `{max}` | `'follow'` |
 | `ignoreMultiWindow` | `true` | `false` |
+| `formula` | `'max(scaled, base)'` — per-value text formula (JSON; `null` clears an inherited one) | none |
 | `transform` | `(base, scaled, screen) => …` (code only) | none |
 | `rules` | `[{name?, when, set}]`; ranges are `min <= v < max`, later rules win | none |
 | `extends` | `'power'`, `'tabletFriendly'`, another id | — |
+
+## Free-form formulas (no limits from the built-in curves)
+
+You are not limited to the built-in curves. Write the formula yourself, as **text** that also works in JSON and gives the same result on every AppDimens platform:
+
+- **Curve expression** returns the **factor** from the screen. It is computed once per window, like any curve, and stays on the one-multiply fast path.
+  `"curve": {"type": "expression", "expression": "pow(ratio, 0.8) * (tablet ? 0.9 : 1)"}`
+- **Formula** returns the **final value** for each input. It can use `base`, `scaled` and `factor`, and replaces or post-processes the result. The strategy then becomes value-dependent, so results are cached per window.
+  `"formula": "base * pow(sw / 360, 0.7) + 2"` · `"formula": "max(scaled, base)"`
+
+| | |
+|---|---|
+| Operators | `+ - * / % ^` (`^` = power, right-associative; `%` keeps the dividend's sign), `== != < <= > >=`, `&& \|\| !`, `cond ? a : b`, `( )` |
+| Functions | `min(a, b, …)` `max(a, b, …)` `clamp(x, lo, hi)` `pow` `sqrt` `ln`/`log` `log10` `log2` `exp` `abs` `sign` `floor` `ceil` `round` (half up) `lerp(a, b, t)` `step(edge, x)` `smoothstep(e0, e1, x)` |
+| Screen variables | `sw` `width` `height` `shortSide` `longSide` `diagonal` `perimeter` `aspectRatio` `density` `fontScale`; flags (1/0): `landscape` `portrait` `multiWindow` `phone` `tablet` `desktop` `tv` `watch` `car` `vr`; constants `pi` `e`, `true` / `false` |
+| Curve variables | screen variables + `ratio` (axis / reference), `axis` (dp), `ref` (reference dp), `refWidth`, `refHeight` |
+| Formula variables | curve variables + `base` (input), `scaled` (base × factor after `valueClamp`), `factor` |
+
+Expressions are parsed when the strategy is created. Unknown variables or functions, wrong arity and syntax errors fail early with the position and the JSON path (e.g. `brand.rules[0].set.curve.expression`). A non-finite factor (for example, a division by zero) throws when the strategy resolves. Rules can swap expressions per device like any other field, and `"formula": null` clears an inherited formula.
+
+For anything the language cannot express, use a code-only function: `{type: 'custom', fn: (ratio, screen) => …}` (factor) or `transform: (base, scaled, screen) => …` (value). Both have full access to your code, but they cannot be serialized to JSON.
+
+```ts
+const Hud = defineCustomStrategy({
+  id: 'hud',
+  curve: {type: 'expression', expression: 'clamp(pow(shortSide / 360, 0.85) * (1 + 0.05 * log(aspectRatio / 1.78)), 0.8, 2)'},
+  formula: 'round(scaled)', // whole dp only
+  rules: [{when: {device: 'tv'}, set: {curve: {type: 'expression', expression: 'height / 540'}}}],
+});
+```
 
 ## JSON, presets, built-ins
 
@@ -118,6 +149,6 @@ console.log(brand.explain());
 // [brand] tablet smallestWidth=800dp / ref 360 = 2.2222 -> logarithmic(0.4) = 1.3194 => factor 1.3194 rules=[large]
 ```
 
-The factor is memoized per window snapshot, so each call is one multiply. Value bounds and `transform` add a few operations. Keep `custom` curves and `transform` pure.
+The factor is memoized per window snapshot, so each call is one multiply. Value bounds, `formula` and `transform` add a few operations. Keep `custom` curves and `transform` pure.
 
 The cross-platform fixture `__tests__/fixtures/custom-strategy-fixture.json` (Kotlin reference engine) is checked in CI with a relative tolerance of 1e-4.
