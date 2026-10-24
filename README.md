@@ -62,6 +62,7 @@ Requirements: React Native ≥ 0.64 (React ≥ 16.8; React 18 uses `useSyncExter
 | `appdimens-react-native/density` | `…-density` | `dsdp`… (pixel density) |
 | `appdimens-react-native/resize` | `…-resize` | `AutoResizeText`, `useAutoResize*`, `DimenResize` |
 | `appdimens-react-native/units` | `…-units` | `mm()`, `cm()`, `inch()`, `DimenPhysicalUnits` |
+| `appdimens-react-native/custom` | `…-custom` | **your own strategies**: `cdp(16, 'base * …')`, `scalingFormula`, `customScaleStrategy`, `defineCustomStrategy`, `cdp` / `csp`, `useCustomStrategy`, presets, JSON |
 
 Strategies you do not import are not bundled. Per-strategy guides: [docs/](docs/README.md). Naming rules: [docs/API-CONVENTIONS.md](docs/API-CONVENTIONS.md). Coming from Android: [docs/MIGRATION-FROM-ANDROID.md](docs/MIGRATION-FROM-ANDROID.md).
 
@@ -255,6 +256,40 @@ TV is detected automatically (`Platform.isTV`), and visionOS as `VR_HEADSET`. Fo
 
 ---
 
+### 11. Custom strategies (your own scaling)
+
+When no built-in curve fits, define your own. The simplest way is to write the math as ordinary TypeScript on one line. The editor autocompletes `base`, `sw`, `width`, `tablet`, `pow`, `clamp`…, and typos are type errors:
+
+```tsx
+import {cdp, csp, customScaleStrategy, scalingFormula} from 'appdimens-react-native/custom';
+
+const product = customScaleStrategy(({width, clamp}) => clamp(width / 360, 0.85, 1.8)); // factor × every value
+const hud = scalingFormula(({base, sw, pow}) => base * pow(sw / 360, 0.8));           // final value (base = 16 in cdp(16, hud))
+<View style={{padding: cdp(16, product)}}><Text style={{fontSize: csp(18, hud)}}>Score</Text></View>;
+cdp(16, 'base * pow(sw / 360, 0.8)');   // same thing as text, for JSON / remote config
+```
+
+For rules per device, factor bounds or a font-scale policy, use the full configuration. The same JSON works on Android, iOS, Flutter, Web, KMP, Games and .NET:
+
+```tsx
+import {defineCustomStrategy, cdp, csp, useCustomStrategy} from 'appdimens-react-native/custom';
+
+const brand = defineCustomStrategy({
+  id: 'brand',
+  reference: {width: 360, height: 640},
+  curve: {type: 'power', exponent: 0.8},
+  clamp: {min: 0.85, max: 1.6},
+  rules: [{when: {device: 'tablet'}, set: {curve: {type: 'logarithmic', k: 0.4}}}],
+});
+
+<View style={{padding: cdp(16, brand)}}><Text style={{fontSize: csp(14, brand)}}>Hi</Text></View>;
+const s = useCustomStrategy(brand); // re-renders on window changes
+```
+
+The module also includes presets (`CustomPresets.TV_SAFE`, `TABLET_FRIENDLY`, …), `BuiltInStrategies.POWER.extend(…)`, `loadCustomStrategies(require('./strategies.json'))`, `<CustomStrategyProvider>` and `(16).cdp` via `appdimens-react-native/custom/number`. Guide: [docs/custom.md](docs/custom.md).
+
+---
+
 ## API reference (summary)
 
 | Area | Exports |
@@ -267,6 +302,7 @@ TV is detected automatically (`Platform.isTV`), and visionOS as `VR_HEADSET`. Fo
 | Escape hatches | `toDynamic<Strategy>{Dp,Px,Sp,SpPx}` |
 | React | `useDimenMetrics`, `useAppDimens`, `AppDimensProvider`, `useLocalDimenMetrics`, `createDimenStyles`, `DimenStyleSheet` |
 | Extensions | `appdimens-react-native/number`, `…/<strategy>/number`, `installNumberExtensions` |
+| Custom | `/custom`: `defineCustomStrategy`, `loadCustomStrategies`, `cdp` / `cdpPx` / `csp` / `cspPx`, `CustomScalingStrategy`, `CustomStrategyProvider`, `useCustomStrategy`, `CustomPresets`, `BuiltInStrategies`, `/custom/number` |
 
 Full math: [docs/](docs/README.md), [docs/PERFORMANCE.md](docs/PERFORMANCE.md) and the Android [MATHEMATICS-AND-CALCULUS.md](https://github.com/bodenberg/appdimens-dynamic/blob/main/DOCUMENTATION/MATHEMATICS-AND-CALCULUS.md).
 
@@ -315,7 +351,7 @@ Generated files (`src/strategies/*`, root proxy folders) must not be edited by h
 
 ## Português (resumo)
 
-Porte da AppDimens Dynamic (Android) para React Native com **a mesma API**: `sdp(16)`, `ssp(14)`, `hdpLw(40)`, `pwsdp(16)` (de `appdimens-react-native/power`), facilitadores `sdpRotate/Mode/Qualifier/Screen`, builders `scaledDp(16).screen(...)`, resize (`<AutoResizeText>`) e unidades físicas (`mm(10)`). Use `useDimenMetrics()` ou `createDimenStyles(...)` nos componentes para atualizar ao girar/redimensionar. Opcional: `import 'appdimens-react-native/number'` para escrever `(16).sdp` como no Kotlin. JS puro, sem módulo nativo, compatível com Expo e New Architecture.
+Porte da AppDimens Dynamic (Android) para React Native com **a mesma API**: `sdp(16)`, `ssp(14)`, `hdpLw(40)`, `pwsdp(16)` (de `appdimens-react-native/power`), facilitadores `sdpRotate/Mode/Qualifier/Screen`, builders `scaledDp(16).screen(...)`, resize (`<AutoResizeText>`) e unidades físicas (`mm(10)`). Estratégias personalizadas: `defineCustomStrategy({...})` + `cdp(16, brand)` em `appdimens-react-native/custom`, com o mesmo JSON das outras plataformas. Use `useDimenMetrics()` ou `createDimenStyles(...)` nos componentes para atualizar ao girar/redimensionar. Opcional: `import 'appdimens-react-native/number'` para escrever `(16).sdp` como no Kotlin. JS puro, sem módulo nativo, compatível com Expo e New Architecture.
 
 ## License
 

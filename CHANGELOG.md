@@ -5,6 +5,17 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/). Versions are aligned with
 [AppDimens Dynamic for Android](https://github.com/bodenberg/appdimens-dynamic).
 
+## [Unreleased]
+
+### Added
+- **Custom scaling strategies (`appdimens-react-native/custom`)**, a port of Android `appdimens-dynamic-custom`.
+  - **Config format:** the same JSON as every AppDimens platform. It covers reference frame, axis, curves (linear, power, logarithmic, interpolated, constant, breakpoints, free-form text `expression`, function), a per-value text `formula`, factor/value bounds, aspect ratio, font-scale policy, and rules per device class / screen range / orientation / multi-window.
+  - **Simplest form — write the math:** typed one-liners whose scope has the same names as the text language, so the editor autocompletes them (`ScreenScope` / `FormulaScope`: `base sw width height ratio aspectRatio`, boolean flags `tablet tv landscape…`, `pow clamp min max lerp…`): `customScaleStrategy(({width, clamp}) => clamp(width / 360, 0.85, 1.8))` (factor, once per window, auto id `scale#<n>`) and `scalingFormula(({base, sw, pow}) => base * pow(sw / 360, 0.8))` (final value). As text for JSON / remote config: `scalingFormula('…')` (shared per text; `{id}` registers it) and `cdp(16, 'base * …')` (any string strategy that is not an id is a formula, also in `useCustomStrategy` / `cdpWith`). Formulas shaped `base * (…)` are screen-only: one multiply per value, bit-identical to evaluating them per value.
+  - **Composition:** `extends` built-ins and presets.
+  - **APIs:** `defineCustomStrategy`, `loadCustomStrategies`, `cdp` / `csp` / `cdpPx` / `cspPx`, `CustomStrategyProvider` / `useCustomStrategy`, `setDefaultCustomStrategy`, and opt-in `(16).cdp` / `(16).cdpWith(brand)` via `/custom/number`.
+  - **Device class** comes from UI mode, `Platform.isTV`, desktop platforms and size, and can be overridden.
+  - **Tests:** a cross-platform parity fixture.
+
 ## [3.2.0] - 2026-10-12
 
 Complete rewrite as a port of **AppDimens Dynamic 3.2.0** (Android). The 2.x API

@@ -58,6 +58,21 @@ toDynamic<Strategy>{Dp,Px,Sp,SpPx}
 
 `DimenCache.currentMetrics` (`screenWidthDp`, `screenHeightDp`, `smallestWidthDp`, `density`, `fontScale`, `orientation`, `uiModeType`, `isInMultiWindowMode`, `version`) · `subscribe` · `refresh` · `setUiModeType` · `setMultiWindowMode` · `setMetricsOverride` · `getCachedUiModeType`
 
+## Custom strategies (`/custom`)
+
+- **Simplest:** `scalingFormula((scope: FormulaScope) => dp | text, {id?, register?})` — the result is the value; the scope has the text-language names (`base sw width height shortSide longSide diagonal perimeter aspectRatio ratio density fontScale device screen`, booleans `phone tablet desktop tv watch car vr landscape portrait multiWindow`, `pow sqrt ln log10 exp abs round min max clamp lerp smoothstep`), destructuring friendly. A string strategy that is not an id is a formula (`cdp(16, 'base * …')`, `useCustomStrategy('…')`, `(16).cdpWith('…')`; shared per text, `getFormulaCustomStrategy(text)`). `base * (E)` with `E` free of `base`/`scaled`/`factor` is screen-only (one multiply).
+- **Programmable factor:** `customScaleStrategy((scope: ScreenScope) => factor, {id?, register?})` (e.g. `({tv, height, ratio}) => (tv ? height / 540 : ratio)`) — code curve, once per window, auto id `scale#<n>`, non-finite factor throws on resolve; not JSON.
+- **Define:** `defineCustomStrategy({id, reference?, axis?, curve?, multiplier?, clamp?, valueClamp?, aspectRatio?, fontScale?, ignoreMultiWindow?, formula?, transform?, rules?, extends?})`. It registers the strategy.
+- **Free-form formulas:** `curve: {type: 'expression', expression: 'pow(ratio, 0.8) * (tablet ? 0.9 : 1)'}` (factor, memoized) and `formula: 'base * pow(sw / 360, 0.7) + 2'` (per value). Variables `sw width height shortSide longSide diagonal perimeter aspectRatio density fontScale`, flags `landscape portrait multiWindow phone tablet desktop tv watch car vr`, `ratio axis ref refWidth refHeight` (curve), `base scaled factor` (formula); functions `min max clamp pow sqrt ln log log10 log2 exp abs sign floor ceil round lerp step smoothstep`. Same results on every AppDimens platform; `ScalingExpression.parse` validates early.
+- **JSON:** `loadCustomStrategies(json)` registers every strategy and applies `default`. Export with `exportCustomStrategies()`.
+- **Use:**
+  - `cdp(v, s?)` (dp) · `cdpPx` · `csp(v, s?)` (fontSize) · `cspPx`.
+  - `s.dp/px/sp/spDp/spPx/factor/explain/extend/withAxis/toJSON`.
+- **React:** `<CustomStrategyProvider strategy>` + `useCustomStrategy(s?)` → bound helpers (re-render on window change).
+- **Default:** `setDefaultCustomStrategy(s)`. Before it is set, the default is `BuiltInStrategies.SCALED`, which equals `sdp`.
+- **Extensions:** `import '…/custom/number'` → `(16).cdp`, `(14).csp`, `(16).cdpWith(s)`.
+- **Presets:** `CustomPresets.{TABLET_FRIENDLY, COMPACT_FIRST, TV_SAFE, WEARABLE, GAME_HUD, READABLE_TEXT}`. Built-ins: `BuiltInStrategies.{SCALED, POWER, …, FIXED}`.
+
 ## Resize (`/resize`) and units (`/units`)
 
 `<AutoResizeText minSp maxSp stepSp maxLines constrainHeight measure>` · `useAutoResizeTextSp(text, opts)` · `useAutoResize{Square,Width,Height}Size({min,max,step,contentPadding})` · `…SizePercent({minPercent,maxPercent,stepPercent,basis})` · `DimenResize.range/rangePx/fitting/fittingInner*/fittingTextSp/fittingTextSpPx/fittingTextSpPercent` · `resizeFixedDp/Sp`, `resizePercentSw/W/H`

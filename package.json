@@ -13,7 +13,10 @@
     "./lib/commonjs/number.js",
     "./lib/module/number.js",
     "./lib/commonjs/strategies/*/number.js",
-    "./lib/module/strategies/*/number.js"
+    "./lib/module/strategies/*/number.js",
+    "./src/custom/number.ts",
+    "./lib/commonjs/custom/number.js",
+    "./lib/module/custom/number.js"
   ],
   "exports": {
     ".": {
@@ -43,6 +46,20 @@
       "import": "./lib/module/units/index.js",
       "require": "./lib/commonjs/units/index.js",
       "default": "./lib/commonjs/units/index.js"
+    },
+    "./custom": {
+      "types": "./lib/typescript/custom/index.d.ts",
+      "react-native": "./src/custom/index.ts",
+      "import": "./lib/module/custom/index.js",
+      "require": "./lib/commonjs/custom/index.js",
+      "default": "./lib/commonjs/custom/index.js"
+    },
+    "./custom/number": {
+      "types": "./lib/typescript/custom/number.d.ts",
+      "react-native": "./src/custom/number.ts",
+      "import": "./lib/module/custom/number.js",
+      "require": "./lib/commonjs/custom/number.js",
+      "default": "./lib/commonjs/custom/number.js"
     },
     "./*/number": {
       "types": "./lib/typescript/strategies/*/number.d.ts",
@@ -76,6 +93,7 @@
     "power",
     "resize",
     "units",
+    "custom",
     "number",
     "!lib/**/*.map",
     "!**/__tests__",
