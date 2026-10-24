@@ -118,6 +118,8 @@ export class CustomScalingStrategy {
   readonly valueDependent: boolean;
   private memoKey: DimenMetrics | null = null;
   private memo: ResolvedScaling | null = null;
+  /** `withAxis` variants of this instance (per source instance, never shared across same-id strategies). */
+  private readonly axisVariants = new Map<ScalingAxis, CustomScalingStrategy>();
 
   constructor(
     readonly id: string,
@@ -192,14 +194,13 @@ export class CustomScalingStrategy {
     return options.register === false ? s : registerCustomStrategy(s);
   }
 
-  /** Same strategy on another axis. Id `"<id>@<axis>"`, cached. */
+  /** Same strategy on another axis. Id `"<id>@<axis>"`, cached per source instance. */
   withAxis(axis: ScalingAxis): CustomScalingStrategy {
     if (axis === this.config.axis) return this;
-    const id = `${this.id}@${axis}`;
-    let s = derived.get(id);
-    if (!s || s.config.rules !== this.config.rules) {
-      s = new CustomScalingStrategy(id, Object.freeze({...this.config, axis}));
-      derived.set(id, s);
+    let s = this.axisVariants.get(axis);
+    if (!s) {
+      s = new CustomScalingStrategy(`${this.id}@${axis}`, Object.freeze({...this.config, axis}));
+      this.axisVariants.set(axis, s);
     }
     return s;
   }
@@ -213,7 +214,6 @@ export class CustomScalingStrategy {
 // ── Registry ───────────────────────────────────────────────────────────────────
 
 const registry = new Map<string, CustomScalingStrategy>();
-const derived = new Map<string, CustomScalingStrategy>();
 let defaultStrategy: CustomScalingStrategy | null = null;
 
 const fromSpec = (s: ScalingStrategySpec): CustomScalingStrategy =>
@@ -315,12 +315,16 @@ export function loadCustomStrategies(
   input: string | ScalingStrategiesDocument | ScalingStrategySpec | readonly ScalingStrategySpec[],
 ): Map<string, CustomScalingStrategy> {
   const {configs, defaultId} = parseStrategiesDocument(input, id => getCustomStrategy(id)?.config);
+  // Resolve the default first, so a document with an unknown default registers nothing.
+  const fallbackDefault =
+    defaultId !== undefined && !configs.has(defaultId)
+      ? requireCustomStrategy(defaultId)
+      : undefined;
   const out = new Map<string, CustomScalingStrategy>();
   configs.forEach((cfg, id) =>
     out.set(id, registerCustomStrategy(new CustomScalingStrategy(id, cfg))),
   );
-  if (defaultId !== undefined)
-    setDefaultCustomStrategy(out.get(defaultId) ?? requireCustomStrategy(defaultId));
+  if (defaultId !== undefined) setDefaultCustomStrategy(out.get(defaultId) ?? fallbackDefault!);
   return out;
 }
 
@@ -338,7 +342,6 @@ export function exportCustomStrategies(
 /** @internal Test helper. */
 export function resetCustomStrategiesForTest(): void {
   registry.clear();
-  derived.clear();
   formulaStrategies.clear();
   formulaIds = 0;
   scaleIds = 0;
