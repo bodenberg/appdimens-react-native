@@ -110,16 +110,15 @@ describe('scalingFormula — the formula is the value', () => {
 
   test('code formulas have no limits', () => {
     const s = scalingFormula(
-      (base, screen) =>
-        base * Math.pow(screen.smallestWidthDp / 360, 0.8) + (screen.isLandscape ? 2 : 0),
+      ({base, sw, pow, landscape}) => base * pow(sw / 360, 0.8) + (landscape ? 2 : 0),
     );
     expect(s.resolveScreen(tablet).scale(16)).toBeCloseTo(16 * Math.pow(800 / 360, 0.8) + 2, 12);
     expect(s.valueDependent).toBe(true);
     expect(s.id.startsWith('formula#')).toBe(true);
-    expect(scalingFormula(b => b).id).not.toBe(s.id);
+    expect(scalingFormula(({base}) => base).id).not.toBe(s.id);
     expect(() => s.toJSON()).toThrow('cannot be encoded');
     expect(getCustomStrategy('hud')).toBeUndefined();
-    const named = scalingFormula(base => base * 3, {id: 'hud'});
+    const named = scalingFormula(({base}) => base * 3, {id: 'hud'});
     expect(getCustomStrategy('hud')).toBe(named);
     expect(s.resolveScreen(phone).explain(s.id)).toContain(' then transform');
   });
@@ -166,9 +165,7 @@ describe('inline formulas on the React Native runtime', () => {
 
 describe('customScaleStrategy — programmable factor', () => {
   test('is screen-only and multiplies every value', () => {
-    const product = customScaleStrategy(screen =>
-      Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8),
-    );
+    const product = customScaleStrategy(({width, clamp}) => clamp(width / 360, 0.85, 1.8));
     expect(product.valueDependent).toBe(false);
     expect(product.resolveScreen(phone).factor).toBe(411 / 360);
     expect(product.resolveScreen(tablet).factor).toBe(1.8);
@@ -179,5 +176,46 @@ describe('customScaleStrategy — programmable factor', () => {
     expect(getCustomStrategy('product')).toBe(named);
     expect(cdp(16, 'product')).toBe(20);
     expect(() => customScaleStrategy(() => NaN).resolveScreen(phone)).toThrow('non-finite');
+  });
+});
+
+describe('code scope matches the text language', () => {
+  test('same names, same numbers', () => {
+    const pairs: [Parameters<typeof scalingFormula>[0], string][] = [
+      [({base, sw, pow}) => base * pow(sw / 360, 0.8), 'base * pow(sw / 360, 0.8)'],
+      [({base, ratio}) => base * ratio, 'base * ratio'],
+      [
+        ({base, tablet, clamp, width}) => base * (tablet ? 0.9 : 1) * clamp(width / 360, 0.85, 1.6),
+        'base * (tablet ? 0.9 : 1) * clamp(width / 360, 0.85, 1.6)',
+      ],
+      [
+        ({base, round, lerp, aspectRatio}) => round(base * lerp(1, aspectRatio, 0.1)),
+        'round(base * lerp(1, aspectRatio, 0.1))',
+      ],
+      [
+        s =>
+          s.base * s.smoothstep(300, 900, s.diagonal) +
+          s.ln(s.perimeter) -
+          s.sqrt(s.shortSide) +
+          s.max(s.longSide, s.height) * s.min(1, s.fontScale, s.density),
+        'base * smoothstep(300, 900, diagonal) + ln(perimeter) - sqrt(shortSide) + max(longSide, height) * min(1, fontScale, density)',
+      ],
+    ];
+    for (const [code, text] of pairs) {
+      for (const screen of [phone, tablet]) {
+        for (const base of [1, 16, 48]) {
+          expect(scalingFormula(code).resolveScreen(screen).scale(base)).toBeCloseTo(
+            scalingFormula(text).resolveScreen(screen).scale(base),
+            4,
+          );
+        }
+      }
+    }
+    const tv = screenSnapshot({widthDp: 960, heightDp: 540, device: 'tv'});
+    const factor = customScaleStrategy(({tv: isTv, height, ratio}) =>
+      isTv ? height / 540 : ratio,
+    );
+    expect(factor.resolveScreen(tv).factor).toBe(1);
+    expect(factor.resolveScreen(phone).factor).toBeCloseTo(411 / 300, 12);
   });
 });

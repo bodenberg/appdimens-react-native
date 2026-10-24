@@ -142,7 +142,7 @@ const brand = defineCustomStrategy({
 });
 
 // Simplest forms: the formula is the value, or a factor computed in code.
-const product = customScaleStrategy(screen => Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8));
+const product = customScaleStrategy(({width, clamp}) => clamp(width / 360, 0.85, 1.8));
 
 function CustomCard() {
   const styles = useStyles();

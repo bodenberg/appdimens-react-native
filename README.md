@@ -258,15 +258,15 @@ TV is detected automatically (`Platform.isTV`), and visionOS as `VR_HEADSET`. Fo
 
 ### 11. Custom strategies (your own scaling)
 
-When no built-in curve fits, define your own. The simplest way is to write the formula: `base` is the value you pass, and the result is the scaled value.
+When no built-in curve fits, define your own. The simplest way is to write the math as ordinary TypeScript on one line. The editor autocompletes `base`, `sw`, `width`, `tablet`, `pow`, `clamp`…, and typos are type errors:
 
 ```tsx
-import {cdp, customScaleStrategy, scalingFormula} from 'appdimens-react-native/custom';
+import {cdp, csp, customScaleStrategy, scalingFormula} from 'appdimens-react-native/custom';
 
-<View style={{padding: cdp(16, 'base * pow(sw / 360, 0.8)')}} />; // inline
-const hud = scalingFormula('base * (tablet ? 0.9 : 1) * clamp(sw / 360, 0.85, 1.6)');
-const fancy = scalingFormula((base, screen) => base * Math.pow(screen.smallestWidthDp / 360, 0.8)); // plain JS
-const product = customScaleStrategy(screen => Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8)); // programmable factor
+const product = customScaleStrategy(({width, clamp}) => clamp(width / 360, 0.85, 1.8)); // factor × every value
+const hud = scalingFormula(({base, sw, pow}) => base * pow(sw / 360, 0.8));           // final value (base = 16 in cdp(16, hud))
+<View style={{padding: cdp(16, product)}}><Text style={{fontSize: csp(18, hud)}}>Score</Text></View>;
+cdp(16, 'base * pow(sw / 360, 0.8)');   // same thing as text, for JSON / remote config
 ```
 
 For rules per device, factor bounds or a font-scale policy, use the full configuration. The same JSON works on Android, iOS, Flutter, Web, KMP, Games and .NET:

@@ -13,12 +13,11 @@
  *   cdp(16, brand);   // dp for the current window
  *   csp(14, brand);   // text (font-scale policy applied)
  *
- * Simplest form — just write the formula (`base` is the value you pass):
+ * Simplest form — one typed line (the editor autocompletes `base`, `sw`, `tablet`, `pow`, `clamp`…):
  *
- *   cdp(16, 'base * pow(sw / 360, 0.8)');
- *   const hud = scalingFormula('base * (tablet ? 0.9 : 1) * clamp(sw / 360, 0.85, 1.6)');
- *   const fancy = scalingFormula((base, screen) => base * Math.pow(screen.smallestWidthDp / 360, 0.8));
- *   const product = customScaleStrategy(screen => Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8));
+ *   const product = customScaleStrategy(({width, clamp}) => clamp(width / 360, 0.85, 1.8)); // factor
+ *   const hud = scalingFormula(({base, sw, pow}) => base * pow(sw / 360, 0.8));           // final value
+ *   cdp(16, 'base * pow(sw / 360, 0.8)');   // the same as text, for JSON / remote config
  *
  * The JSON format is shared with every AppDimens platform (`custom-strategy.schema.json`).
  * The class is called `CustomScalingStrategy` because `ScalingStrategy` is already the
@@ -35,6 +34,8 @@ import {
   configFromSpec,
   configToSpec,
   DEFAULT_CONFIG,
+  formulaScope,
+  screenScope,
   isValueDependent,
   parseStrategiesDocument,
   PRESET_SPECS,
@@ -47,12 +48,12 @@ import type {
   DeviceClass,
   ScalingAxis,
   ScalingConfig,
-  ScalingFormula,
   ScalingPatchSpec,
   ScalingRuleSpec,
   ScalingStrategiesDocument,
   ScalingStrategySpec,
-  ScreenFactor,
+  FormulaScope,
+  ScreenScope,
   ScreenSnapshot,
 } from './engine';
 
@@ -385,20 +386,28 @@ export interface ScalingFormulaOptions {
 }
 
 /**
- * One-liner strategy — the formula **is** the final value (`base` = the value you pass):
+ * One-liner strategy — the result **is** the final value (`base` = the value you pass).
  *
- *   const hud = scalingFormula('base * pow(sw / 360, 0.8)');  // or straight: cdp(16, 'base * …')
- *   const fancy = scalingFormula((base, screen) => base * Math.pow(screen.smallestWidthDp / 360, 0.8));
+ * In code (typed, autocompleted; the scope has the same names as the text language):
+ *
+ *   const hud = scalingFormula(({base, sw, pow}) => base * pow(sw / 360, 0.8));
+ *   const card = scalingFormula(({base, tablet, ratio}) => (tablet ? base * 1.2 : base * ratio));
+ *
+ * Must be pure (evaluated per value). Without an `id` a unique `"formula#<n>"` id is generated.
+ * Not JSON-serializable.
+ *
+ * As text, for JSON / remote config (`cdp(16, '…')` does the same inline):
+ *
+ *   const remote = scalingFormula('base * pow(sw / 360, 0.8)');
  *
  * Text variables: `base`, `sw`, `width`, `height`, `shortSide`, `longSide`, `diagonal`,
  * `aspectRatio`, `density`, `fontScale`, device flags (`tablet`, `tv`, `landscape`, …) and `ratio`
- * (`sw / 300`, the ratio `sdp` uses). Same language and numbers on every AppDimens platform.
- * Writing it as `base * (…)` keeps the one-multiply fast path; any other shape works too,
- * evaluated per value. Code formulas (id `"formula#<n>"`) have no limits but are not
- * JSON-serializable.
+ * (`sw / 300`, the ratio `sdp` uses). Same numbers on every AppDimens platform. Text shaped
+ * `base * (…)` keeps the one-multiply fast path; any other shape works too, evaluated per value.
+ * Without an `id`, a text formula is shared per text.
  */
 export function scalingFormula(
-  formula: string | ScalingFormula,
+  formula: string | ((scope: FormulaScope) => number),
   options: ScalingFormulaOptions = {},
 ): CustomScalingStrategy {
   const register = options.register ?? options.id !== undefined;
@@ -414,7 +423,8 @@ export function scalingFormula(
       options.id ?? `formula#${++formulaIds}`,
       Object.freeze({
         ...DEFAULT_CONFIG,
-        transform: (base: number, _scaled: number, screen: ScreenSnapshot) => fn(base, screen),
+        transform: (base: number, _scaled: number, screen: ScreenSnapshot) =>
+          fn(formulaScope(screen, base)),
       }),
     );
   }
@@ -422,10 +432,11 @@ export function scalingFormula(
 }
 
 /**
- * Strategy from a programmable factor — the most flexible form, written in code. You get the
- * window and return the **factor** that multiplies every value:
+ * Strategy from a programmable **factor** — you return the number that multiplies every value.
+ * Typed and autocompleted (same names as the text language), plus any code of yours:
  *
- *   const product = customScaleStrategy(screen => Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8));
+ *   const product = customScaleStrategy(({width, clamp}) => clamp(width / 360, 0.85, 1.8));
+ *   const living = customScaleStrategy(({tv, height, ratio}) => (tv ? height / 540 : ratio));
  *   cdp(16, product);   // 16 × factor
  *
  * The factor depends only on the window, so it runs once per window and every value costs one
@@ -434,7 +445,7 @@ export function scalingFormula(
  * use a text curve (`curve: {type: 'expression', expression: 'clamp(width / 360, 0.85, 1.8)'}`).
  */
 export function customScaleStrategy(
-  factor: ScreenFactor,
+  factor: (scope: ScreenScope) => number,
   options: ScalingFormulaOptions = {},
 ): CustomScalingStrategy {
   if (typeof factor !== 'function') throw new TypeError('factor must be a function');
@@ -444,7 +455,7 @@ export function customScaleStrategy(
       ...DEFAULT_CONFIG,
       curve: Object.freeze({
         type: 'custom' as const,
-        fn: (_ratio: number, screen: ScreenSnapshot) => factor(screen),
+        fn: (_ratio: number, screen: ScreenSnapshot) => factor(screenScope(screen)),
       }),
     }),
   );

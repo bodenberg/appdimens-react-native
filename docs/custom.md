@@ -6,55 +6,61 @@ Define **your own** scaling strategy when none of the built-in curves fits, or w
 
 ## Quick start: just write the formula
 
-The easiest way is to write the formula yourself. You get the value you pass (`base`, for example 16) and the screen, and you return the scaled value. There is nothing to configure.
+The easiest way is to write the math yourself, as ordinary TypeScript on one line. The function receives a typed scope: the editor autocompletes everything you can use (`base`, `sw`, `width`, `tablet`, `pow`, `clamp`…), and a typo is a type error. There is nothing to configure.
 
 ```tsx
 import {cdp, csp, customScaleStrategy, scalingFormula, useCustomStrategy} from 'appdimens-react-native/custom';
 
-// 1. Inline: the formula is the value
-<View style={{padding: cdp(16, 'base * pow(sw / 360, 0.8)')}} />;
-<Text style={{fontSize: csp(20, 'base * min(sw / 360, 1.3)')}}>Title</Text>;
-const s = useCustomStrategy('base * (sw / 360)'); // re-renders on window changes
+// 1. Formula: the result is the final value (`base` = the value you pass, e.g. 16)
+const hud = scalingFormula(({base, sw, pow}) => base * pow(sw / 360, 0.8));
+const card = scalingFormula(({base, tablet, ratio}) => (tablet ? base * 1.2 : base * ratio));
 
-// 2. Named, to reuse it everywhere
-const hud = scalingFormula('base * (tablet ? 0.9 : 1) * clamp(sw / 360, 0.85, 1.6)');
-cdp(48, hud);
+// 2. Factor: the result multiplies every value
+const product = customScaleStrategy(({width, clamp}) => clamp(width / 360, 0.85, 1.8));
+const living = customScaleStrategy(({tv, height, ratio}) => (tv ? height / 540 : ratio));
 
-// 3. In code, with no limits (not JSON-serializable)
-const fancy = scalingFormula((base, screen) => base * Math.pow(screen.smallestWidthDp / 360, 0.8));
-
-// 4. Programmable factor: return the factor that multiplies every value
-const product = customScaleStrategy(screen => {
-  const width = screen.widthDp;
-  return Math.min(Math.max(width / 360, 0.85), 1.8);
-});
-cdp(16, product); // 16 × factor
+<View style={{padding: cdp(16, product)}} />;                  // 16 × factor
+<Text style={{fontSize: csp(18, hud)}}>Score</Text>;           // text follows the user font scale
+const s = useCustomStrategy(product);                          // re-renders on window changes
 ```
+
+Declare each strategy once (at module level), then use it anywhere: `cdp` / `csp`, `useCustomStrategy(s)`, `<CustomStrategyProvider strategy={s}>`, `(16).cdpWith(s)`. Pass `{id: 'product'}` to register one under a name.
+
+### What you can use in the scope
+
+| Name | Meaning |
+|---|---|
+| `base` | the value you pass (`16` in `cdp(16, hud)`), only in `scalingFormula` |
+| `sw` · `width` · `height` | smallest width · window width · window height (dp) |
+| `shortSide` · `longSide` · `diagonal` · `perimeter` · `aspectRatio` | other window measures |
+| `ratio` | `sw / 300`, the ratio `sdp` uses (`base * ratio` is the same as `sdp`) |
+| `phone` `tablet` `desktop` `tv` `watch` `car` `vr` · `landscape` `portrait` `multiWindow` | `boolean` |
+| `density` · `fontScale` · `device` · `screen` | screen density · user font scale · `DeviceClass` · the whole `ScreenSnapshot` |
+| `pow` `sqrt` `ln` `log10` `exp` `abs` `round` `min` `max` `clamp` `lerp` `smoothstep` | math (`round` is half up, as in the text language) |
+
+Anything else from JavaScript or your own code also works (`Math.*`, `switch`, your helpers). The scope types are exported (`ScreenScope`, `FormulaScope`). Strategies must be pure: they must not read mutable state, because results are memoized per window.
 
 | Form | You return | Cost per value | JSON |
 |---|---|---|---|
-| `cdp(16, '…')` / `scalingFormula('…')` | the final value (`base` = input) | one multiply when shaped `base * (…)`, otherwise evaluated per value | yes |
-| `scalingFormula((base, screen) => …)` | the final value | the function runs per value | no |
-| `customScaleStrategy(screen => …)` | the **factor** (any JS: `if`, `switch`, helpers, `Math.min`…) | one multiply (the function runs once per window) | no |
+| `customScaleStrategy(s => …)` | the **factor** | one multiply (runs once per window) | no |
+| `scalingFormula(s => …)` | the final value | the function runs per value | no |
+| `scalingFormula('…')` / `cdp(16, '…')` | the final value, as text | one multiply when shaped `base * (…)`, otherwise evaluated per value | yes |
 
-In the functions, `screen` is a `ScreenSnapshot`: `widthDp`, `heightDp`, `smallestWidthDp`, `density`, `fontScale`, `isLandscape`, `isMultiWindow`, `device` (`'phone'`, `'tablet'`, `'tv'`…). They must be pure (they must not read mutable state), because results are memoized per window.
+### Text formulas (for JSON and remote config)
 
-A string strategy (in `cdp`, `csp`, `useCustomStrategy`, `<CustomStrategyProvider strategy>`, `(16).cdpWith(…)`, `setDefaultCustomStrategy`) is a strategy **id** first; when no strategy has that id, it is read as a formula. Text formulas without an `id` are shared per text (`getFormulaCustomStrategy(text)`) and are not registered. Pass `{id: 'hud'}` to `scalingFormula` / `customScaleStrategy` to register one under a name.
+When the formula has to live outside the code, in a JSON file, a remote config or an A/B test, write the same thing as text. It uses the same names (flags are 1/0):
 
-| You write | Means |
-|---|---|
-| `base` | the value you pass (`16` in `cdp(16, …)`) |
-| `sw` · `width` · `height` | smallest width · window width · window height (dp) |
-| `shortSide` · `longSide` · `diagonal` · `aspectRatio` | other window measures |
-| `ratio` | `sw / 300`, the ratio `sdp` uses (so `base * ratio` = `sdp`) |
-| `phone` `tablet` `desktop` `tv` `watch` `car` `vr` · `landscape` `portrait` `multiWindow` | 1 when true, 0 when false |
-| `density` · `fontScale` | screen density · user font scale |
+```tsx
+const remote = scalingFormula('base * pow(sw / 360, 0.8)');
+<View style={{padding: cdp(16, 'base * (tablet ? 0.9 : 1) * clamp(sw / 360, 0.85, 1.6)')}} />; // inline
+const s = useCustomStrategy('base * (sw / 360)');
+```
 
-You can use `+ - * / ^`, `cond ? a : b`, `min` `max` `clamp` `pow` `sqrt` `log` `round` `lerp` `smoothstep`, and more (see [Free-form formulas](#free-form-formulas-no-limits-from-the-built-in-curves)). Typos fail right away with the position, for example `unknown variable 'sww'`.
+A string strategy (in `cdp`, `csp`, `useCustomStrategy`, `<CustomStrategyProvider strategy>`, `(16).cdpWith(…)`, `setDefaultCustomStrategy`) is a strategy **id** first; when no strategy has that id, it is read as a formula. Text formulas without an `id` are shared per text (`getFormulaCustomStrategy(text)`) and are not registered. Text is checked when the strategy is created: an unknown name fails right away with its position and the list of valid names (e.g. `unknown variable 'sww' (allowed: aspectRatio, base, …)`). The same text works in the strategies JSON (`{"id": "hud", "formula": "base * pow(sw / 360, 0.8)"}`) and gives the same numbers on every AppDimens platform. Operators and functions are listed in [Free-form formulas](#free-form-formulas-no-limits-from-the-built-in-curves).
 
-**Fast path.** When the formula has the shape `base * (…)` and the `(…)` part does not read `base`, it costs one multiply per value: the `(…)` part is computed once per window. Any other shape also works and is evaluated per value. `base * sw / 360` is evaluated as written, `(base * sw) / 360`. Write `base * (sw / 360)` for the fast path.
+**Fast path.** A text formula shaped `base * (…)`, where the `(…)` part does not read `base`, costs one multiply per value, because the `(…)` part is computed once per window. `base * sw / 360` is evaluated as written, `(base * sw) / 360`, so write `base * (sw / 360)` to get the fast path. In code, prefer `customScaleStrategy(…)` for the same effect.
 
-The same text works in the strategies JSON (`{"id": "hud", "formula": "base * pow(sw / 360, 0.8)"}`) and gives the same numbers on every AppDimens platform. If you need more structure (rules per device, factor bounds, font-scale policy), use the full configuration below.
+For rules per device, factor bounds or a font-scale policy, use the full configuration below.
 
 ## What it computes
 
