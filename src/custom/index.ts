@@ -13,6 +13,13 @@
  *   cdp(16, brand);   // dp for the current window
  *   csp(14, brand);   // text (font-scale policy applied)
  *
+ * Simplest form — just write the formula (`base` is the value you pass):
+ *
+ *   cdp(16, 'base * pow(sw / 360, 0.8)');
+ *   const hud = scalingFormula('base * (tablet ? 0.9 : 1) * clamp(sw / 360, 0.85, 1.6)');
+ *   const fancy = scalingFormula((base, screen) => base * Math.pow(screen.smallestWidthDp / 360, 0.8));
+ *   const product = customScaleStrategy(screen => Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8));
+ *
  * The JSON format is shared with every AppDimens platform (`custom-strategy.schema.json`).
  * The class is called `CustomScalingStrategy` because `ScalingStrategy` is already the
  * built-in strategy enum of this package.
@@ -35,14 +42,17 @@ import {
   ResolvedScaling,
   TABLET_MIN_SMALLEST_WIDTH_DP,
 } from './engine';
+import {FORMULA_VARIABLES, ScalingExpression} from './expression';
 import type {
   DeviceClass,
   ScalingAxis,
   ScalingConfig,
+  ScalingFormula,
   ScalingPatchSpec,
   ScalingRuleSpec,
   ScalingStrategiesDocument,
   ScalingStrategySpec,
+  ScreenFactor,
   ScreenSnapshot,
 } from './engine';
 
@@ -103,7 +113,7 @@ export function toScreenSnapshot(m: DimenMetrics): ScreenSnapshot {
  * one multiply (plus optional value bounds).
  */
 export class CustomScalingStrategy {
-  /** True when results depend on the value itself (value bounds / transform). */
+  /** True when results depend on the value itself (value bounds / transform / non-`base * (…)` formula). */
   readonly valueDependent: boolean;
   private memoKey: DimenMetrics | null = null;
   private memo: ResolvedScaling | null = null;
@@ -291,8 +301,9 @@ export function getDefaultCustomStrategy(): CustomScalingStrategy {
   return defaultStrategy ?? BuiltInStrategies.SCALED;
 }
 
+/** `strategy`: an instance, a registered / built-in / preset id, or a text formula (`'base * …'`). */
 export function setDefaultCustomStrategy(strategy: CustomScalingStrategy | string | null): void {
-  defaultStrategy = typeof strategy === 'string' ? requireCustomStrategy(strategy) : strategy;
+  defaultStrategy = typeof strategy === 'string' ? strategyFromString(strategy) : strategy;
 }
 
 /**
@@ -327,18 +338,146 @@ export function exportCustomStrategies(
 export function resetCustomStrategiesForTest(): void {
   registry.clear();
   derived.clear();
+  formulaStrategies.clear();
+  formulaIds = 0;
+  scaleIds = 0;
   defaultStrategy = null;
   deviceResolver = null;
 }
 
-/** Resolves an optional strategy argument (instance, id, or the default). */
+// ── Formulas — the simplest custom strategy: the formula **is** the value ────────
+
+const FORMULA_ID_PREFIX = 'formula:';
+/** Bound for distinct shared formula texts; past it, strategies are built per call (still correct). */
+const MAX_SHARED_FORMULAS = 256;
+const formulaStrategies = new Map<string, CustomScalingStrategy>();
+let formulaIds = 0;
+let scaleIds = 0;
+
+function textFormulaStrategy(id: string, formula: string): CustomScalingStrategy {
+  // Errors are the parser's own ("unknown variable 'sww'" with the position), thrown right away.
+  return new CustomScalingStrategy(
+    id,
+    Object.freeze({
+      ...DEFAULT_CONFIG,
+      formula: ScalingExpression.parse(formula, FORMULA_VARIABLES),
+    }),
+  );
+}
+
+/**
+ * Strategy whose value is the text `formula` (`'base * pow(sw / 360, 0.8)'`), shared per text
+ * (id `"formula:<text>"`, not registered). What `cdp(16, 'base * …')` uses.
+ */
+export function getFormulaCustomStrategy(formula: string): CustomScalingStrategy {
+  const hit = formulaStrategies.get(formula);
+  if (hit) return hit;
+  const s = textFormulaStrategy(FORMULA_ID_PREFIX + formula, formula);
+  if (formulaStrategies.size < MAX_SHARED_FORMULAS) formulaStrategies.set(formula, s);
+  return s;
+}
+
+export interface ScalingFormulaOptions {
+  /** Strategy id. Without one, a text formula is shared per text and a code one gets an auto id. */
+  id?: string;
+  /** Default: `true` when `id` is given (like `defineCustomStrategy`), else `false`. */
+  register?: boolean;
+}
+
+/**
+ * One-liner strategy — the formula **is** the final value (`base` = the value you pass):
+ *
+ *   const hud = scalingFormula('base * pow(sw / 360, 0.8)');  // or straight: cdp(16, 'base * …')
+ *   const fancy = scalingFormula((base, screen) => base * Math.pow(screen.smallestWidthDp / 360, 0.8));
+ *
+ * Text variables: `base`, `sw`, `width`, `height`, `shortSide`, `longSide`, `diagonal`,
+ * `aspectRatio`, `density`, `fontScale`, device flags (`tablet`, `tv`, `landscape`, …) and `ratio`
+ * (`sw / 300`, the ratio `sdp` uses). Same language and numbers on every AppDimens platform.
+ * Writing it as `base * (…)` keeps the one-multiply fast path; any other shape works too,
+ * evaluated per value. Code formulas (id `"formula#<n>"`) have no limits but are not
+ * JSON-serializable.
+ */
+export function scalingFormula(
+  formula: string | ScalingFormula,
+  options: ScalingFormulaOptions = {},
+): CustomScalingStrategy {
+  const register = options.register ?? options.id !== undefined;
+  let s: CustomScalingStrategy;
+  if (typeof formula === 'string') {
+    if (options.id === undefined && !register) return getFormulaCustomStrategy(formula);
+    s = textFormulaStrategy(options.id ?? FORMULA_ID_PREFIX + formula, formula);
+  } else {
+    if (typeof formula !== 'function')
+      throw new TypeError('formula must be a string or a function');
+    const fn = formula;
+    s = new CustomScalingStrategy(
+      options.id ?? `formula#${++formulaIds}`,
+      Object.freeze({
+        ...DEFAULT_CONFIG,
+        transform: (base: number, _scaled: number, screen: ScreenSnapshot) => fn(base, screen),
+      }),
+    );
+  }
+  return register ? registerCustomStrategy(s) : s;
+}
+
+/**
+ * Strategy from a programmable factor — the most flexible form, written in code. You get the
+ * window and return the **factor** that multiplies every value:
+ *
+ *   const product = customScaleStrategy(screen => Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8));
+ *   cdp(16, product);   // 16 × factor
+ *
+ * The factor depends only on the window, so it runs once per window and every value costs one
+ * multiply. A non-finite factor throws when the window resolves. Without an `id` a unique
+ * `"scale#<n>"` id is generated; an `id` registers by default. Not JSON-serializable: for JSON
+ * use a text curve (`curve: {type: 'expression', expression: 'clamp(width / 360, 0.85, 1.8)'}`).
+ */
+export function customScaleStrategy(
+  factor: ScreenFactor,
+  options: ScalingFormulaOptions = {},
+): CustomScalingStrategy {
+  if (typeof factor !== 'function') throw new TypeError('factor must be a function');
+  const s = new CustomScalingStrategy(
+    options.id ?? `scale#${++scaleIds}`,
+    Object.freeze({
+      ...DEFAULT_CONFIG,
+      curve: Object.freeze({
+        type: 'custom' as const,
+        fn: (_ratio: number, screen: ScreenSnapshot) => factor(screen),
+      }),
+    }),
+  );
+  return (options.register ?? options.id !== undefined) ? registerCustomStrategy(s) : s;
+}
+
+const IDENTIFIER = /^\s*[A-Za-z_][A-Za-z0-9_-]*\s*$/;
+
+/** A registered / built-in / preset id first, else a text formula. */
+function strategyFromString(s: string): CustomScalingStrategy {
+  const found = getCustomStrategy(s);
+  if (found) return found;
+  try {
+    return getFormulaCustomStrategy(s);
+  } catch (e) {
+    // A bare name that is not a strategy is most likely a typo'd id, not a formula.
+    if (IDENTIFIER.test(s)) requireCustomStrategy(s);
+    throw e;
+  }
+}
+
+/**
+ * Resolves an optional strategy argument (instance, id, or the default). A string is a strategy
+ * id or, when no strategy has that id, a text formula: `cdp(16, 'brand')` ·
+ * `cdp(16, 'base * pow(sw / 360, 0.8)')` · `useCustomStrategy('base * (sw / 360)')`.
+ */
 export function pickCustomStrategy(
   strategy?: CustomScalingStrategy | string | null,
 ): CustomScalingStrategy {
   return strategy == null
     ? getDefaultCustomStrategy()
     : typeof strategy === 'string'
-      ? requireCustomStrategy(strategy)
+      ? strategyFromString(strategy)
       : strategy;
 }
 

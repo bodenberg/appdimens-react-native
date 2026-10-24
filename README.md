@@ -62,7 +62,7 @@ Requirements: React Native ≥ 0.64 (React ≥ 16.8; React 18 uses `useSyncExter
 | `appdimens-react-native/density` | `…-density` | `dsdp`… (pixel density) |
 | `appdimens-react-native/resize` | `…-resize` | `AutoResizeText`, `useAutoResize*`, `DimenResize` |
 | `appdimens-react-native/units` | `…-units` | `mm()`, `cm()`, `inch()`, `DimenPhysicalUnits` |
-| `appdimens-react-native/custom` | `…-custom` | **your own strategies**: `defineCustomStrategy`, `cdp` / `csp`, `useCustomStrategy`, presets, JSON |
+| `appdimens-react-native/custom` | `…-custom` | **your own strategies**: `cdp(16, 'base * …')`, `scalingFormula`, `customScaleStrategy`, `defineCustomStrategy`, `cdp` / `csp`, `useCustomStrategy`, presets, JSON |
 
 Strategies you do not import are not bundled. Per-strategy guides: [docs/](docs/README.md). Naming rules: [docs/API-CONVENTIONS.md](docs/API-CONVENTIONS.md). Coming from Android: [docs/MIGRATION-FROM-ANDROID.md](docs/MIGRATION-FROM-ANDROID.md).
 
@@ -258,7 +258,18 @@ TV is detected automatically (`Platform.isTV`), and visionOS as `VR_HEADSET`. Fo
 
 ### 11. Custom strategies (your own scaling)
 
-When no built-in curve fits, define your own. The same JSON works on Android, iOS, Flutter, Web, KMP, Games and .NET:
+When no built-in curve fits, define your own. The simplest way is to write the formula: `base` is the value you pass, and the result is the scaled value.
+
+```tsx
+import {cdp, customScaleStrategy, scalingFormula} from 'appdimens-react-native/custom';
+
+<View style={{padding: cdp(16, 'base * pow(sw / 360, 0.8)')}} />; // inline
+const hud = scalingFormula('base * (tablet ? 0.9 : 1) * clamp(sw / 360, 0.85, 1.6)');
+const fancy = scalingFormula((base, screen) => base * Math.pow(screen.smallestWidthDp / 360, 0.8)); // plain JS
+const product = customScaleStrategy(screen => Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8)); // programmable factor
+```
+
+For rules per device, factor bounds or a font-scale policy, use the full configuration. The same JSON works on Android, iOS, Flutter, Web, KMP, Games and .NET:
 
 ```tsx
 import {defineCustomStrategy, cdp, csp, useCustomStrategy} from 'appdimens-react-native/custom';

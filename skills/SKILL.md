@@ -100,6 +100,7 @@ Read the matching guide in [docs/](../docs/README.md) before recommending one; q
 | **Custom** | `/custom`, `cdp` / `csp` | no built-in passes QA; one law shared across apps/platforms; TV / watch / car rules | a built-in already fits (less to maintain) |
 
 **Custom strategy workflow.** Read [docs/custom.md](../docs/custom.md) first.
+0. Simplest form, when the user just wants to write the math: `cdp(16, 'base * pow(sw / 360, 0.8)')`, `const hud = scalingFormula('…')`, `scalingFormula((base, screen) => …)` (code, not JSON), or a programmable **factor** `customScaleStrategy(screen => Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8))` (runs once per window). Write `base * (…)` (no `base` inside the parentheses) for the one-multiply fast path; other shapes are evaluated per value.
 1. Start from a built-in or preset: `BuiltInStrategies.POWER.extend('x', …)`, `CustomPresets.TABLET_FRIENDLY`, or `"extends"`.
 2. Keep one source: a JSON file loaded with `loadCustomStrategies(require(…))`, or one `strategies.ts` module. Reuse the ids from `appdimens.config.json` (`customStrategies`) when it exists.
 3. Express device or screen differences as `rules`, never as `if`s at call sites. When no curve fits, write the law as text (`curve: {type: 'expression', expression: '…'}` or `formula: '…'`); prefer that over JS functions when it lives in JSON or is shared with other platforms.

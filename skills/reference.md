@@ -60,6 +60,8 @@ toDynamic<Strategy>{Dp,Px,Sp,SpPx}
 
 ## Custom strategies (`/custom`)
 
+- **Simplest:** `scalingFormula(text | (base, screen) => dp, {id?, register?})` — the formula is the value. A string strategy that is not an id is a formula (`cdp(16, 'base * …')`, `useCustomStrategy('…')`, `(16).cdpWith('…')`; shared per text, `getFormulaCustomStrategy(text)`). `base * (E)` with `E` free of `base`/`scaled`/`factor` is screen-only (one multiply).
+- **Programmable factor:** `customScaleStrategy(screen => factor, {id?, register?})` — code curve, once per window, auto id `scale#<n>`, non-finite factor throws on resolve; not JSON.
 - **Define:** `defineCustomStrategy({id, reference?, axis?, curve?, multiplier?, clamp?, valueClamp?, aspectRatio?, fontScale?, ignoreMultiWindow?, formula?, transform?, rules?, extends?})`. It registers the strategy.
 - **Free-form formulas:** `curve: {type: 'expression', expression: 'pow(ratio, 0.8) * (tablet ? 0.9 : 1)'}` (factor, memoized) and `formula: 'base * pow(sw / 360, 0.7) + 2'` (per value). Variables `sw width height shortSide longSide diagonal perimeter aspectRatio density fontScale`, flags `landscape portrait multiWindow phone tablet desktop tv watch car vr`, `ratio axis ref refWidth refHeight` (curve), `base scaled factor` (formula); functions `min max clamp pow sqrt ln log log10 log2 exp abs sign floor ceil round lerp step smoothstep`. Same results on every AppDimens platform; `ScalingExpression.parse` validates early.
 - **JSON:** `loadCustomStrategies(json)` registers every strategy and applies `default`. Export with `exportCustomStrategies()`.

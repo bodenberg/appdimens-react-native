@@ -31,6 +31,7 @@ import {AutoResizeText, useAutoResizeSquareSize} from '../src/resize';
 import {
   CustomPresets,
   CustomStrategyProvider,
+  customScaleStrategy,
   defineCustomStrategy,
   useCustomStrategy,
 } from '../src/custom';
@@ -140,10 +141,15 @@ const brand = defineCustomStrategy({
   ],
 });
 
+// Simplest forms: the formula is the value, or a factor computed in code.
+const product = customScaleStrategy(screen => Math.min(Math.max(screen.widthDp / 360, 0.85), 1.8));
+
 function CustomCard() {
   const styles = useStyles();
   const s = useCustomStrategy(); // brand, from CustomStrategyProvider
   const hud = useCustomStrategy(CustomPresets.GAME_HUD);
+  const formula = useCustomStrategy('base * (tablet ? 0.9 : 1) * clamp(sw / 360, 0.85, 1.6)');
+  const factor = useCustomStrategy(product);
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Custom strategy</Text>
@@ -151,6 +157,8 @@ function CustomCard() {
       <View style={{flexDirection: 'row', gap: s.dp(8)}}>
         <View style={{width: s.dp(48), height: s.dp(48), backgroundColor: '#6a1b9a'}} />
         <View style={{width: hud.dp(48), height: hud.dp(48), backgroundColor: '#ab47bc'}} />
+        <View style={{width: formula.dp(48), height: formula.dp(48), backgroundColor: '#ce93d8'}} />
+        <View style={{width: factor.dp(48), height: factor.dp(48), backgroundColor: '#e1bee7'}} />
       </View>
     </View>
   );
