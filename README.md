@@ -286,7 +286,7 @@ const brand = defineCustomStrategy({
 const s = useCustomStrategy(brand); // re-renders on window changes
 ```
 
-The module also includes presets (`CustomPresets.TV_SAFE`, `TABLET_FRIENDLY`, …), `BuiltInStrategies.POWER.extend(…)`, `loadCustomStrategies(require('./strategies.json'))`, `<CustomStrategyProvider>` and `(16).cdp` via `appdimens-react-native/custom/number`. Guide: [docs/custom.md](docs/custom.md).
+The module also includes presets (`CustomPresets.TV_SAFE`, `TABLET_FRIENDLY`, …), `BuiltInStrategies.POWER.extend(…)`, `loadCustomStrategies(require('./strategies.json'))`, `<CustomStrategyProvider>` and `(16).cdp` via `appdimens-react-native/custom/number`. Guide: [docs/custom.md](docs/custom.md) · full documentation: [docs/custom/](docs/custom/README.md) (quick start, code and text formulas, configuration, JSON, API, performance, cookbook, troubleshooting).
 
 ---
 

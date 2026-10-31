@@ -48,7 +48,7 @@ Strategies: `percent` (p), `power` (pw), `fluid` (f), `auto` (a), `diagonal` (dg
 | density | [docs/density.md](../docs/density.md) |
 | resize | [docs/resize.md](../docs/resize.md) |
 | units | [docs/physical-units.md](../docs/physical-units.md) |
-| custom | [docs/custom.md](../docs/custom.md) |
+| custom | [docs/custom.md](../docs/custom.md) · guides [docs/custom/](../docs/custom/README.md) · agent reference [custom.md](custom.md) |
 
 Cross-cutting: [docs/API-CONVENTIONS.md](../docs/API-CONVENTIONS.md) · [docs/MIGRATION-FROM-ANDROID.md](../docs/MIGRATION-FROM-ANDROID.md) · [docs/PERFORMANCE.md](../docs/PERFORMANCE.md)
 

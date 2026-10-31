@@ -19,11 +19,13 @@ Important notes:
 - [docs/MIGRATION-FROM-ANDROID.md](docs/MIGRATION-FROM-ANDROID.md): Compose/Views → React Native
 - [docs/PERFORMANCE.md](docs/PERFORMANCE.md): snapshot + factor table architecture, benchmark
 - [skills/SKILL.md](skills/SKILL.md): agent workflow skill for this library
+- [skills/custom.md](skills/custom.md): agent reference for custom strategies
 - [CHANGELOG.md](CHANGELOG.md)
 
 ## Strategy guides
 
 - [Scaled](docs/scaled.md) · [Percent](docs/percent.md) · [Power](docs/power.md) · [Fluid](docs/fluid.md) · [Auto](docs/auto.md) · [Diagonal](docs/diagonal.md) · [Fill](docs/fill.md) · [Fit](docs/fit.md) · [Interpolated](docs/interpolated.md) · [Logarithmic](docs/logarithmic.md) · [Perimeter](docs/perimeter.md) · [Density](docs/density.md) · [Resize](docs/resize.md) · [Physical units](docs/physical-units.md) · [Custom strategies](docs/custom.md)
+- Custom strategy guides: [overview](docs/custom/README.md) · [quick start](docs/custom/quick-start.md) · [code formulas](docs/custom/code-formulas.md) · [text formulas](docs/custom/text-formulas.md) · [configuration](docs/custom/configuration.md) · [JSON](docs/custom/json.md) · [API](docs/custom/api-reference.md) · [performance](docs/custom/performance.md) · [cookbook](docs/custom/cookbook.md) · [troubleshooting](docs/custom/troubleshooting.md)
 
 ## Optional
 
