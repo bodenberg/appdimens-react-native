@@ -146,3 +146,12 @@ Reference: [docs/resize.md](../docs/resize.md).
 ## Output style
 
 For each decision state: strategy and import path, axis (`sdp`/`hdp`/`wdp`), reactivity pattern, resize vs global scaling, and which acceptance criterion it satisfies. Keep diffs small and aligned with [example/App.tsx](../example/App.tsx).
+
+<!-- appdimens-family:begin -->
+## Other AppDimens platforms
+
+The same token names and math exist on Android (Compose, Views, XML), Kotlin Multiplatform, iOS/macOS, Flutter, React
+Native, Web, .NET, Qt, GTK, LVGL, Roku, Python/Blender and games (Unity, Unreal, Godot, C/C++). For code on another
+platform, use that library's skill — every skill, plus the layout-intent decision table, installs with
+`npx appdimens-skills` (https://github.com/bodenberg/appdimens-skills). Hub: https://github.com/bodenberg/appdimens.
+<!-- appdimens-family:end -->
