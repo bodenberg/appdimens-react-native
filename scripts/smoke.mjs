@@ -31,7 +31,17 @@ Module._resolveFilename = function (request, ...rest) {
 };
 
 const expectSdp = 16 * (411 / 300);
-const entries = ['', '/power', '/percent', '/resize', '/units', '/number', '/fluid/number'];
+const entries = [
+  '',
+  '/power',
+  '/percent',
+  '/resize',
+  '/units',
+  '/custom',
+  '/number',
+  '/fluid/number',
+  '/custom/number',
+];
 
 for (const e of entries) {
   const id = `appdimens-react-native${e}`;
@@ -58,5 +68,9 @@ assert.ok(Math.abs(power.pwsdp(16) - 16 * Math.pow(411 / 300, 0.75)) < 1e-9, 'pw
 const percent = await import('appdimens-react-native/percent');
 assert.ok(Math.abs(percent.spaceW(10) - 41.1) < 1e-9, 'spaceW(10)');
 assert.ok(Math.abs((16).sdp - expectSdp) < 1e-9, 'Number extension (16).sdp');
+const custom = await import('appdimens-react-native/custom');
+const brand = custom.defineCustomStrategy({id: 'smoke', curve: {type: 'power', exponent: 0.8}});
+assert.ok(Math.abs(custom.cdp(16, brand) - 16 * Math.pow(411 / 300, 0.8)) < 1e-9, 'cdp(16, brand)');
+assert.ok(Math.abs(custom.cdp(16) - expectSdp) < 1e-9, 'cdp(16) default = sdp');
 assert.ok((16).fsdp > 0, 'Number extension (16).fsdp');
 console.log(`smoke OK — ${entries.length} entry points, CJS + ESM`);

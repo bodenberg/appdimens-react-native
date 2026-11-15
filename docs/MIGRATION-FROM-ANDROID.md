@@ -30,6 +30,10 @@ Same names, same formulas, same constants (300 dp base, 1.78 reference aspect ra
 | `DimenResize.fittingTextSpPx(…)` | `DimenResize.fittingTextSpPx({…})` |
 | `DimenPhysicalUnits.toDpFromMm(10f, resources)` | `DimenPhysicalUnits.toDpFromMm(10)` / `mm(10)` |
 | `DimenCache.invalidateOnConfigChange()` | not needed (`DimenCache.refresh()` exists for parity) |
+| `scalingStrategy("brand") { curve = power(0.8f); on(DeviceClass.TABLET) { … } }` | `defineCustomStrategy({id: 'brand', curve: {type: 'power', exponent: 0.8}, rules: [{when: {device: 'tablet'}, set: {…}}]})` |
+| `16.cdp(Brand)` / `14.csp(Brand)` | `cdp(16, brand)` / `csp(14, brand)` |
+| `ProvideScalingStrategy(Brand) { … }` | `<CustomStrategyProvider strategy={brand}>` + `useCustomStrategy()` |
+| `ScalingStrategies.loadAsset(context, "x.json")` | `loadCustomStrategies(require('./x.json'))`, with the same JSON file |
 
 Prefer Kotlin-looking code? `import 'appdimens-react-native/number'` once, then `(16).sdp`, `(14).ssp`.
 

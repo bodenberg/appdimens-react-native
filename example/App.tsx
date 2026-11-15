@@ -28,6 +28,13 @@ import {pwsdp, pwssp} from '../src/strategies/power';
 import {fsdp} from '../src/strategies/fluid';
 import {spaceW} from '../src/strategies/percent';
 import {AutoResizeText, useAutoResizeSquareSize} from '../src/resize';
+import {
+  CustomPresets,
+  CustomStrategyProvider,
+  customScaleStrategy,
+  defineCustomStrategy,
+  useCustomStrategy,
+} from '../src/custom';
 import {mm} from '../src/units';
 
 // 1) Styles computed once per window snapshot and shared by every component.
@@ -118,6 +125,45 @@ function ResizeCard() {
   );
 }
 
+// Your own strategy: same JSON shape on every AppDimens platform.
+const brand = defineCustomStrategy({
+  id: 'brand',
+  reference: {width: 360, height: 640},
+  curve: {type: 'power', exponent: 0.8},
+  clamp: {min: 0.85, max: 1.6},
+  fontScale: {max: 1.3},
+  rules: [
+    {
+      name: 'large',
+      when: {device: ['tablet', 'desktop']},
+      set: {curve: {type: 'logarithmic', k: 0.4}},
+    },
+  ],
+});
+
+// Simplest forms: the formula is the value, or a factor computed in code.
+const product = customScaleStrategy(({width, clamp}) => clamp(width / 360, 0.85, 1.8));
+
+function CustomCard() {
+  const styles = useStyles();
+  const s = useCustomStrategy(); // brand, from CustomStrategyProvider
+  const hud = useCustomStrategy(CustomPresets.GAME_HUD);
+  const formula = useCustomStrategy('base * (tablet ? 0.9 : 1) * clamp(sw / 360, 0.85, 1.6)');
+  const factor = useCustomStrategy(product);
+  return (
+    <View style={styles.card}>
+      <Text style={styles.title}>Custom strategy</Text>
+      <Text style={{fontSize: s.sp(11)}}>{s.explain()}</Text>
+      <View style={{flexDirection: 'row', gap: s.dp(8)}}>
+        <View style={{width: s.dp(48), height: s.dp(48), backgroundColor: '#6a1b9a'}} />
+        <View style={{width: hud.dp(48), height: hud.dp(48), backgroundColor: '#ab47bc'}} />
+        <View style={{width: formula.dp(48), height: formula.dp(48), backgroundColor: '#ce93d8'}} />
+        <View style={{width: factor.dp(48), height: factor.dp(48), backgroundColor: '#e1bee7'}} />
+      </View>
+    </View>
+  );
+}
+
 export default function App() {
   const styles = useStyles();
   return (
@@ -126,6 +172,9 @@ export default function App() {
         <MetricsCard />
         <StrategiesCard />
         <ResizeCard />
+        <CustomStrategyProvider strategy={brand}>
+          <CustomCard />
+        </CustomStrategyProvider>
       </ScrollView>
     </AppDimensProvider>
   );

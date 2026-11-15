@@ -255,6 +255,14 @@ async function main() {
     path.join(ROOT, 'units', 'package.json'),
     proxy('units', {rel: '..', path: 'units/index'}),
   );
+  files.set(
+    path.join(ROOT, 'custom', 'package.json'),
+    proxy('custom', {rel: '..', path: 'custom/index'}),
+  );
+  files.set(
+    path.join(ROOT, 'custom', 'number', 'package.json'),
+    proxy('custom/number', {rel: '../..', path: 'custom/number'}),
+  );
 
   const config = (await prettier.resolveConfig(path.join(ROOT, 'src', 'index.ts'))) || {};
   let stale = 0;

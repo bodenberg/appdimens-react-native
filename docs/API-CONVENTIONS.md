@@ -26,6 +26,15 @@ import {pwsdp} from 'appdimens-react-native/power';
 | logarithmic | `/logarithmic` | `logsdp` / … | `logssp` / … | `logsem` / … |
 | perimeter | `/perimeter` | `prsdp` / … | `prssp` / … | `prsem` / … |
 | density | `/density` | `dsdp` / … | `dssp` / … | `dsem` / … |
+| custom ¹ | `/custom` | `cdp(v, strategy?)` (axis set by the strategy) | `csp(v, strategy?)` | `csp` with `fontScale: 'ignore'` |
+
+¹ Custom strategies are configuration objects, so there is no prefix × suffix grid. Use:
+- `cdp` / `cdpPx` / `csp` / `cspPx`;
+- `strategy.dp()` / `.sp()` / `.spDp()` / `.px()`;
+- `useCustomStrategy()`;
+- `(16).cdp` / `(16).cdpWith(brand)` after `import 'appdimens-react-native/custom/number'`.
+
+See [custom.md](custom.md).
 
 ## 3. Suffixes
 
