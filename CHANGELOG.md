@@ -5,7 +5,7 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/). Versions are aligned with
 [AppDimens Dynamic for Android](https://github.com/bodenberg/appdimens-dynamic).
 
-## [Unreleased]
+## Latest — in production (`main`)
 
 ### Added
 - **Custom scaling strategies (`appdimens-react-native/custom`)**, a port of Android `appdimens-dynamic-custom`.
